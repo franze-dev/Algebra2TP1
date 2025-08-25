@@ -245,7 +245,7 @@ namespace CustomMath
             var up = upwards.normalized;
             var right = Vec3.Cross(up, fw).normalized;
 
-            Matrix4x4 m = new();
+            CustomMatrix4x4 m = new();
 
             m.SetColumn(0, new Vector4(right.x, right.y, right.z, 0));
             m.SetColumn(1, new Vector4(up.x, up.y, up.z, 0));
