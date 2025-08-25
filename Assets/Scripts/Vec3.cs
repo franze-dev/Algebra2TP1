@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System;
-using Unity.VisualScripting;
 namespace CustomMath
 {
-    public struct Vec3 : IEquatable<Vec3>
+    public class Vec3 : IEquatable<Vec3>
     {
         #region Variables
         public float x;
@@ -13,6 +12,7 @@ namespace CustomMath
         public float sqrMagnitude { get => magnitude * magnitude; }
         public Vec3 normalized { get => this / magnitude; }
         public float magnitude { get => Magnitude(this); }
+
         #endregion
 
         #region constants
@@ -20,16 +20,16 @@ namespace CustomMath
         #endregion
 
         #region Default Values
-        public static Vec3 Zero { get { return new Vec3(0.0f, 0.0f, 0.0f); } }
-        public static Vec3 One { get { return new Vec3(1.0f, 1.0f, 1.0f); } }
-        public static Vec3 Forward { get { return new Vec3(0.0f, 0.0f, 1.0f); } }
-        public static Vec3 Back { get { return new Vec3(0.0f, 0.0f, -1.0f); } }
-        public static Vec3 Right { get { return new Vec3(1.0f, 0.0f, 0.0f); } }
-        public static Vec3 Left { get { return new Vec3(-1.0f, 0.0f, 0.0f); } }
-        public static Vec3 Up { get { return new Vec3(0.0f, 1.0f, 0.0f); } }
-        public static Vec3 Down { get { return new Vec3(0.0f, -1.0f, 0.0f); } }
-        public static Vec3 PositiveInfinity { get { return new Vec3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity); } }
-        public static Vec3 NegativeInfinity { get { return new Vec3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity); } }
+        public static Vec3 zero { get { return new Vec3(0.0f, 0.0f, 0.0f); } }
+        public static Vec3 one { get { return new Vec3(1.0f, 1.0f, 1.0f); } }
+        public static Vec3 forward { get { return new Vec3(0.0f, 0.0f, 1.0f); } }
+        public static Vec3 back { get { return new Vec3(0.0f, 0.0f, -1.0f); } }
+        public static Vec3 right { get { return new Vec3(1.0f, 0.0f, 0.0f); } }
+        public static Vec3 left { get { return new Vec3(-1.0f, 0.0f, 0.0f); } }
+        public static Vec3 up { get { return new Vec3(0.0f, 1.0f, 0.0f); } }
+        public static Vec3 down { get { return new Vec3(0.0f, -1.0f, 0.0f); } }
+        public static Vec3 positiveInfinity { get { return new Vec3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity); } }
+        public static Vec3 negativeInfinity { get { return new Vec3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity); } }
         #endregion                                                                                                                                                                               
 
         #region Constructors
@@ -221,7 +221,7 @@ namespace CustomMath
         public static Vec3 Project(Vec3 vector, Vec3 onNormal)
         {
             if (onNormal.sqrMagnitude < epsilon * epsilon)
-                return Zero; 
+                return zero; 
 
             float dot = Dot(vector, onNormal);
             float sqrMag = SqrMagnitude(onNormal);
@@ -230,7 +230,7 @@ namespace CustomMath
         public static Vec3 Reflect(Vec3 inDirection, Vec3 inNormal)
         {
             if (inNormal.sqrMagnitude < epsilon * epsilon)
-                return Zero;
+                return zero;
 
             float dot = Dot(inDirection, inNormal);
             return inDirection - inNormal * (2.0f * dot);
