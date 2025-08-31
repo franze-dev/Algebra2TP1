@@ -151,25 +151,39 @@ namespace CustomMath
 
         private CustomQuaternion GetRotation()
         {
-
+            Vec3 fw = new Vec3(m02, m12, m22);
+            Vec3 up = new Vec3(m01, m11, m21);
+            return CustomQuaternion.LookRotation(fw, up);
         }
+
         private Vec3 GetLossyScale()
         {
-
+            return new Vec3(
+                new Vec3(m00, m10, m20).magnitude,
+                new Vec3(m01, m11, m21).magnitude,
+                new Vec3(m02, m12, m22).magnitude
+            );
         }
+
         private bool IsIdentity()
         {
-
+            return this == identityMatrix;
         }
 
         public bool ValidTRS()
         {
+            Vec3 scale = lossyScale;
 
+            return scale.x > Mathf.Epsilon && scale.y > Mathf.Epsilon && scale.z > Mathf.Epsilon;
         }
 
         public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion q, Vec3 s)
         {
+            var transform = Translate(pos);
+            var rotation = Rotate(q);
+            var scale = Scale(s);
 
+            return transform * rotation * scale;
         }
         public void SetTRS(Vec3 pos, CustomQuaternion q, Vec3 s)
         {
@@ -248,9 +262,9 @@ namespace CustomMath
         public static bool operator ==(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
         {
             return lhs.GetColumn(0) == rhs.GetColumn(0) &&
-                lhs.GetColumn(1) == rhs.GetColumn(1) &&
-                lhs.GetColumn(2) == rhs.GetColumn(2) &&
-                lhs.GetColumn(3) == rhs.GetColumn(3);
+                   lhs.GetColumn(1) == rhs.GetColumn(1) &&
+                   lhs.GetColumn(2) == rhs.GetColumn(2) &&
+                   lhs.GetColumn(3) == rhs.GetColumn(3);
         }
 
         public static bool operator !=(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
@@ -297,27 +311,73 @@ namespace CustomMath
 
         public Vec3 MultiplyPoint3x4(Vec3 point)
         {
+            var vec = MultiplyVector(point);
 
+            vec.x += m03;
+            vec.y += m13;
+            vec.z += m23;
+
+            return vec;
         }
 
-        public Vec3 MultiplyVector(Vec3 vector)
+        public Vec3 MultiplyVector(Vec3 point)
         {
-
+            float x = m00 * point.x + m01 * point.y + m02 * point.z;
+            float y = m10 * point.x + m11 * point.y + m12 * point.z;
+            float z = m20 * point.x + m21 * point.y + m22 * point.z;
+            return new Vec3(x, y, z);
         }
 
         public static CustomMatrix4x4 Scale(Vec3 vector)
         {
+            var m = identity;
 
+            m.m00 = vector.x;
+            m.m11 = vector.y;
+            m.m22 = vector.z;
+
+            return m;
         }
 
         public static CustomMatrix4x4 Translate(Vec3 vector)
         {
+            var m = identity;
 
+            m.m03 = vector.x;
+            m.m13 = vector.y;
+            m.m23 = vector.z;
+            return m;
         }
 
         public static CustomMatrix4x4 Rotate(CustomQuaternion q)
         {
+            q.Normalize();
 
+            var xx = q.x * q.x;
+            var yy = q.y * q.y;
+            var zz = q.z * q.z;
+            var xy = q.x * q.y;
+            var xz = q.x * q.z;
+            var yz = q.y * q.z;
+            var wx = q.w * q.x;
+            var wy = q.w * q.y;
+            var wz = q.w * q.z;
+
+            var res = identity;
+
+            res.m00 = 1 - 2 * (yy + zz);
+            res.m01 = 2 * (xy - wz);
+            res.m02 = 2 * (xz + wy);
+
+            res.m10 = 2 * (xy + wz);
+            res.m11 = 1 - 2 * (xx + zz);
+            res.m12 = 2 * (yz - wx);
+
+            res.m20 = 2 * (xz - wy);
+            res.m21 = 2 * (yz + wx);
+            res.m22 = 1 - 2 * (xx + yy);
+
+            return res;
         }
     }
 }
