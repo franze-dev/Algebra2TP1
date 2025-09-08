@@ -31,7 +31,7 @@ namespace CustomMath
             this.w = w;
         }
 
-        public Vec3 EulerAngles
+        public Vec3 eulerAngles
         {
             get => MakePositive(ToEulerRad(this) * 57.29578f);
             set
@@ -86,6 +86,11 @@ namespace CustomMath
                 -rotation.z / sqrMag,
                 rotation.w / sqrMag
             );
+        }
+
+        public CustomQuaternion Inverse()
+        {
+            return Inverse(this);
         }
 
         public static CustomQuaternion Slerp(CustomQuaternion a, CustomQuaternion b, float t)

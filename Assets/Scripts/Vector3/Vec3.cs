@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using Unity.VisualScripting;
 namespace CustomMath
 {
     public class Vec3 : IEquatable<Vec3>
@@ -105,6 +106,36 @@ namespace CustomMath
         public static Vec3 operator *(float scalar, Vec3 v3)
         {
             return v3 * scalar;
+        }
+        /// <summary>
+        /// While not mathematically correct, it's useful for multiplying data saved in vectors.
+        /// It'd be correct as long as they're not treated as actual vectors.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Vec3 operator *(Vec3 a, Vec3 b)
+        {
+            return new Vec3(
+                a.x * b.x,
+                a.y * b.y,
+                a.z * b.z
+                );
+        }
+        /// <summary>
+        /// While not mathematically correct, it's useful for dividing data saved in vectors.
+        /// It'd be correct as long as they're not treated as actual vectors.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Vec3 operator /(Vec3 a, Vec3 b)
+        {
+            return new Vec3(
+                a.x / b.x,
+                a.y / b.y,
+                a.z / b.z
+                );
         }
         public static Vec3 operator /(Vec3 v3, float scalar)
         {

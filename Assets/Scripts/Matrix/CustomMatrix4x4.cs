@@ -24,7 +24,6 @@ namespace CustomMath
         public float m13;
         public float m23;
         public float m33;
-
         private static readonly CustomMatrix4x4 zeroMatrix = new CustomMatrix4x4(new Vector4(0f, 0f, 0f, 0f),
                                                                                  new Vector4(0f, 0f, 0f, 0f),
                                                                                  new Vector4(0f, 0f, 0f, 0f),
@@ -378,6 +377,25 @@ namespace CustomMath
             res.m22 = 1 - 2 * (xx + yy);
 
             return res;
+        }
+
+        public CustomMatrix4x4 InverseTRS(Vec3 position, CustomQuaternion rotation, Vec3 scale)
+        {
+            Vec3 invS = new(
+                scale.x != 0 ? 1f / scale.x : 0,
+                scale.y != 0 ? 1f / scale.y : 0,
+                scale.z != 0 ? 1f / scale.z : 0
+                );
+
+            var invR = rotation.Inverse();
+
+            var invT = -(invR * (invS * position));
+
+            var S = Scale(invS);
+            var R = Rotate(invR);
+            var T = Translate(invT);
+
+            return S * R * T;
         }
     }
 }
