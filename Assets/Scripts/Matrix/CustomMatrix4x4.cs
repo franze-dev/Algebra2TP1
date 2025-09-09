@@ -145,11 +145,53 @@ namespace CustomMath
         public static CustomMatrix4x4 zero => zeroMatrix;
         public static CustomMatrix4x4 identity => identityMatrix;
 
+        /// <summary>
+        /// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/?utm_source=chatgpt.com
+        /// </summary>
+        /// <returns></returns>
         private CustomQuaternion GetRotation()
         {
-            Vec3 fw = new Vec3(m02, m12, m22);
-            Vec3 up = new Vec3(m01, m11, m21);
-            return CustomQuaternion.LookRotation(fw, up);
+            float x;
+            float y;
+            float z;
+            float w;
+
+            float trace = m00 + m11 + m22;
+
+            if (trace > 0)
+            {
+                float S = Mathf.Sqrt(trace + 1f) * 2;
+                w = 0.25f * S;
+                x = (m21 - m12) / S;
+                y = (m02 - m20) / S;
+                z = (m10 - m01) / S;
+            }
+            else if ((m00 > m11) & (m00 > m22))
+            {
+                float S = Mathf.Sqrt(1f + m00 - m11 - m22) * 2;
+                w = (m21 - m12) / S;
+                x = 0.25f * S;
+                y = (m01 + m10) / S;
+                z = (m02 + m20) / S;
+            }
+            else if (m11 > m22)
+            {
+                float S = Mathf.Sqrt(1f + m11 - m00 - m22) * 2;
+                w = (m02 - m20) / S;
+                x = (m01 + m10) / S;
+                y = 0.25f * S;
+                z = (m12 + m21) / S;
+            }
+            else
+            {
+                float S = Mathf.Sqrt(1f + m22 - m00 - m11) * 2;
+                w = (m10 - m01) / S;
+                x = (m02 + m20) / S;
+                y = (m12 + m21) / S;
+                z = 0.25f * S;
+            }
+
+            return new CustomQuaternion(x, y, z, w).normalized;
         }
 
         private Vec3 GetLossyScale()
@@ -175,9 +217,9 @@ namespace CustomMath
 
         public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion q, Vec3 s)
         {
-            var transform = Translate(pos);
-            var rotation = Rotate(q);
             var scale = Scale(s);
+            var rotation = Rotate(q);
+            var transform = Translate(pos);
 
             return transform * rotation * scale;
         }

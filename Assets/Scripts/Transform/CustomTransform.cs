@@ -16,6 +16,11 @@ namespace CustomMath
             localRotation = CustomQuaternion.Euler(eulerRotation);
         }
 
+        private void OnValidate()
+        {
+            localRotation = CustomQuaternion.Euler(eulerRotation);
+        }
+
         public Vec3 position
         {
             get
@@ -125,29 +130,44 @@ namespace CustomMath
             }
         }
 
+        /// <summary>
+        /// https://learnopengl.com/Getting-started/Transformations
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="worldPositionStays"></param>
         public void SetParent(CustomTransform parent, bool worldPositionStays = true)
         {
-            this.parent = parent;
-
-            if (!worldPositionStays)
+            if (this.parent == parent)
                 return;
 
-            Vec3 worldT = position;
+            var worldT = position;
             var worldR = rotation;
-            Vec3 worldS = lossyScale;
+            var worldS = lossyScale;
+
+            if (!worldPositionStays)
+            {
+                this.parent = parent;
+                return;
+            }
+
+            CustomMatrix4x4 worldMat = CustomMatrix4x4.TRS(worldT, worldR, worldS);
+
+            CustomMatrix4x4 localMat;
 
             if (parent)
             {
-                localPosition = parent.worldToLocalMatrix.MultiplyPoint(worldT);
-                localRotation = parent.rotation.Inverse() * worldR;
-                localScale = worldS / parent.lossyScale;
+                localMat = parent.worldToLocalMatrix * worldToLocalMatrix;
             }
             else
             {
-                localPosition = worldT;
-                localRotation = worldR;
-                localScale = worldS;
+                localMat = worldMat;
             }
+
+            localPosition = localMat.GetPosition();
+            localRotation = localMat.rotation;
+            localScale = localMat.lossyScale;
+
+            this.parent = parent;
         }
 
         public Vec3 TransformPoint(Vec3 position)

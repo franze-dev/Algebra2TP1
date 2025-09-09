@@ -19,7 +19,6 @@ public class CustomMathTest : MonoBehaviour
 
         child.SetParent(root);
 
-
         grandchild.SetParent(child);
     }
 
