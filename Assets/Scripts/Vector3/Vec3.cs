@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System;
-using Unity.VisualScripting;
 namespace CustomMath
 {
+    [Serializable]
     public class Vec3 : IEquatable<Vec3>
     {
         #region Variables
