@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace CustomMath
 {
+    /// <summary>
+    /// https://developer.unigine.com/en/docs/latest/code/fundamentals/matrix_transformations/index?implementationLanguage=cpp
+    /// </summary>
     public class CustomTransform : MonoBehaviour
     {
         public Vec3 localPosition;
@@ -11,6 +14,8 @@ namespace CustomMath
 
         public CustomTransform parent;
 
+        Transform t;
+
         private void Awake()
         {
             localRotation = CustomQuaternion.Euler(eulerRotation);
@@ -19,6 +24,7 @@ namespace CustomMath
         private void OnValidate()
         {
             localRotation = CustomQuaternion.Euler(eulerRotation);
+
         }
 
         public Vec3 position
@@ -104,7 +110,13 @@ namespace CustomMath
         {
             get
             {
-                return parent != null ? parent.localToWorldMatrix.Inverse() : CustomMatrix4x4.identity;
+                var S = CustomMatrix4x4.Scale(localScale);
+                var R = CustomMatrix4x4.Rotate(localRotation);
+                var T = CustomMatrix4x4.Translate(localPosition);
+
+                var local = T * R * S;
+
+                return local;
             }
         }
 
@@ -112,13 +124,7 @@ namespace CustomMath
         {
             get
             {
-                var T = CustomMatrix4x4.Translate(localPosition);
-                var R = CustomMatrix4x4.Rotate(localRotation);
-                var S = CustomMatrix4x4.Scale(localScale);
-
-                var local = T * R * S;
-
-                return parent != null ? parent.localToWorldMatrix * local : local;
+                return parent != null ? parent.localToWorldMatrix * worldToLocalMatrix : worldToLocalMatrix;
             }
         }
 
