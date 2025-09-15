@@ -210,18 +210,9 @@ namespace CustomMath
 
             var cosTheta = dot / (Magnitude(from) * Magnitude(to));
 
-            return Mathf.Clamp(cosTheta, -1f, 1f);
-        }
-        public static Vec3 ClampMagnitude(Vec3 vector, float maxLength)
-        {
-            float sqrMag = vector.sqrMagnitude;
+            cosTheta = Mathf.Clamp(cosTheta, -1f, 1f);
 
-            if (sqrMag > maxLength * maxLength)
-                return vector;
-
-            float mag = vector.magnitude;
-
-            return vector * (maxLength / mag);
+            return Mathf.Acos(cosTheta) * Mathf.Rad2Deg;
         }
 
         /// <summary>
@@ -294,6 +285,7 @@ namespace CustomMath
 
             return LerpUnclamped(a, b, t);
         }
+
         public static Vec3 LerpUnclamped(Vec3 a, Vec3 b, float t)
         {
             return new Vec3(
@@ -302,6 +294,13 @@ namespace CustomMath
                 a.z + (b.z - a.z) * t
             );
         }
+
+        /// <summary>
+        /// Returns a vector that is made from the largest components of two vectors.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static Vec3 Max(Vec3 a, Vec3 b)
         {
             float newX = a.x > b.x ? a.x : b.x;
@@ -309,6 +308,13 @@ namespace CustomMath
             float newZ = a.z > b.z ? a.z : b.z;
             return new Vec3(newX, newY, newZ);
         }
+
+        /// <summary>
+        /// Returns a vector that is made from the smallest components of two vectors.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static Vec3 Min(Vec3 a, Vec3 b)
         {
             float newX = a.x < b.x ? a.x : b.x;
@@ -316,28 +322,7 @@ namespace CustomMath
             float newZ = a.z < b.z ? a.z : b.z;
             return new Vec3(newX, newY, newZ);
         }
-        public static float SqrMagnitude(Vec3 vector)
-        {
-            float mag = Magnitude(vector);
-            return mag * mag;
-        }
-        public static Vec3 Project(Vec3 vector, Vec3 onNormal)
-        {
-            if (onNormal.sqrMagnitude < epsilon * epsilon)
-                return zero;
 
-            float dot = Dot(vector, onNormal);
-            float sqrMag = SqrMagnitude(onNormal);
-            return onNormal * (dot / sqrMag);
-        }
-        public static Vec3 Reflect(Vec3 inDirection, Vec3 inNormal)
-        {
-            if (inNormal.sqrMagnitude < epsilon * epsilon)
-                return zero;
-
-            float dot = Dot(inDirection, inNormal);
-            return inDirection - inNormal * (2.0f * dot);
-        }
         public void Set(float newX, float newY, float newZ)
         {
             x = newX;

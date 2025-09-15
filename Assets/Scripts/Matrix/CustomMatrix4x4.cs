@@ -146,6 +146,7 @@ namespace CustomMath
         public static CustomMatrix4x4 identity => identityMatrix;
 
         /// <summary>
+        /// Returns the rotation component of the matrix as a quaternion.
         /// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/?utm_source=chatgpt.com
         /// </summary>
         /// <returns></returns>
@@ -156,17 +157,21 @@ namespace CustomMath
             float z;
             float w;
 
-            float trace = m00 + m11 + m22;
+            //diagonal elements (the sum of these must not be zero)
+            float diagonal = m00 + m11 + m22;
 
-            if (trace > 0)
+            // check which major diagonal element has the greatest value
+            // if the diagonal is greater than zero then w is the largest
+            if (diagonal > 0)
             {
-                float S = Mathf.Sqrt(trace + 1f) * 2;
+                float S = Mathf.Sqrt(diagonal + 1f) * 2;
                 w = 0.25f * S;
                 x = (m21 - m12) / S;
                 y = (m02 - m20) / S;
                 z = (m10 - m01) / S;
             }
-            else if ((m00 > m11) & (m00 > m22))
+            // otherwise we need to figure out which of x, y, or z is the largest
+            else if ((m00 > m11) && (m00 > m22))
             {
                 float S = Mathf.Sqrt(1f + m00 - m11 - m22) * 2;
                 w = (m21 - m12) / S;
@@ -215,6 +220,13 @@ namespace CustomMath
             return scale.x > Mathf.Epsilon && scale.y > Mathf.Epsilon && scale.z > Mathf.Epsilon;
         }
 
+        /// <summary>
+        /// https://learnopengl.com/Getting-started/Transformations
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="q"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
         public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion q, Vec3 s)
         {
             var scale = Scale(s);
@@ -366,6 +378,11 @@ namespace CustomMath
             return new Vec3(x, y, z);
         }
 
+        /// <summary>
+        /// Returns a matrix that scales by the given vector.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
         public static CustomMatrix4x4 Scale(Vec3 vector)
         {
             var m = identity;
@@ -377,6 +394,11 @@ namespace CustomMath
             return m;
         }
 
+        /// <summary>
+        /// Returns a matrix that translates by the given vector.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
         public static CustomMatrix4x4 Translate(Vec3 vector)
         {
             var m = identity;
@@ -387,6 +409,12 @@ namespace CustomMath
             return m;
         }
 
+        /// <summary>
+        /// Returns a matrix that rotates by the given quaternion.
+        /// https://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf
+        /// </summary>
+        /// <param name="q"></param>
+        /// <returns></returns>
         public static CustomMatrix4x4 Rotate(CustomQuaternion q)
         {
             q.Normalize();
@@ -400,45 +428,29 @@ namespace CustomMath
             var wx = q.w * q.x;
             var wy = q.w * q.y;
             var wz = q.w * q.z;
+            var ww = q.w * q.w;
 
             var res = identity;
 
-            res.m00 = 1 - 2 * (yy + zz);
+            res.m00 = ww + xx - yy - zz;
             res.m01 = 2 * (xy - wz);
             res.m02 = 2 * (xz + wy);
 
             res.m10 = 2 * (xy + wz);
-            res.m11 = 1 - 2 * (xx + zz);
+            res.m11 = ww - xx + yy - zz;
             res.m12 = 2 * (yz - wx);
 
             res.m20 = 2 * (xz - wy);
             res.m21 = 2 * (yz + wx);
-            res.m22 = 1 - 2 * (xx + yy);
+            res.m22 = ww - xx - yy + zz;
 
             return res;
         }
 
-        public CustomMatrix4x4 InverseTRS(Vec3 position, CustomQuaternion rotation, Vec3 scale)
-        {
-            Vec3 invS = new(
-                scale.x != 0 ? 1f / scale.x : 0,
-                scale.y != 0 ? 1f / scale.y : 0,
-                scale.z != 0 ? 1f / scale.z : 0
-                );
-
-            var invR = rotation.Inverse();
-
-            var invT = -(invR * (invS * position));
-
-            var T = Translate(invT);
-            var R = Rotate(invR);
-            var S = Scale(invS);
-
-            return T * R * S;
-        }
-
         /// <summary>
         /// https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
+        /// https://rodolphe-vaillant.fr/entry/7/c-code-for-4x4-matrix-inversion
+        /// 
         /// </summary>
         /// <returns></returns>
         public CustomMatrix4x4 Inverse()
@@ -450,127 +462,128 @@ namespace CustomMath
             float det;
             int i;
 
-            inv[0] = m[5] * m[10] * m[15] -
-                     m[5] * m[11] * m[14] -
-                     m[9] * m[6] * m[15] +
-                     m[9] * m[7] * m[14] +
-                     m[13] * m[6] * m[11] -
-                     m[13] * m[7] * m[10];
+            inv.m00 = m.m11 * m.m22 * m.m33 -
+                     m.m11 * m.m32 * m.m23 -
+                     m.m12 * m.m21 * m.m33 +
+                     m.m12 * m.m31 * m.m23 +
+                     m.m13 * m.m21 * m.m32 -
+                     m.m13 * m.m31 * m.m22;
 
-            inv[4] = -m[4] * m[10] * m[15] +
-                      m[4] * m[11] * m[14] +
-                      m[8] * m[6] * m[15] -
-                      m[8] * m[7] * m[14] -
-                      m[12] * m[6] * m[11] +
-                      m[12] * m[7] * m[10];
+            inv.m01 = -m.m01 * m.m22 * m.m33 +
+                      m.m01 * m.m32 * m.m23 +
+                      m.m02 * m.m21 * m.m33 -
+                      m.m02 * m.m31 * m.m23 -
+                      m.m03 * m.m21 * m.m32 +
+                      m.m03 * m.m31 * m.m22;
 
-            inv[8] = m[4] * m[9] * m[15] -
-                     m[4] * m[11] * m[13] -
-                     m[8] * m[5] * m[15] +
-                     m[8] * m[7] * m[13] +
-                     m[12] * m[5] * m[11] -
-                     m[12] * m[7] * m[9];
+            inv.m02 = m.m01 * m.m12 * m.m33 -
+                     m.m01 * m.m32 * m.m13 -
+                     m.m02 * m.m11 * m.m33 +
+                     m.m02 * m.m31 * m.m13 +
+                     m.m03 * m.m11 * m.m32 -
+                     m.m03 * m.m31 * m.m12;
 
-            inv[12] = -m[4] * m[9] * m[14] +
-                       m[4] * m[10] * m[13] +
-                       m[8] * m[5] * m[14] -
-                       m[8] * m[6] * m[13] -
-                       m[12] * m[5] * m[10] +
-                       m[12] * m[6] * m[9];
+            inv.m03 = -m.m01 * m.m12 * m.m23 +
+                       m.m01 * m.m22 * m.m13 +
+                       m.m02 * m.m11 * m.m23 -
+                       m.m02 * m.m21 * m.m13 -
+                       m.m03 * m.m11 * m.m22 +
+                       m.m03 * m.m21 * m.m12;
 
-            inv[1] = -m[1] * m[10] * m[15] +
-                      m[1] * m[11] * m[14] +
-                      m[9] * m[2] * m[15] -
-                      m[9] * m[3] * m[14] -
-                      m[13] * m[2] * m[11] +
-                      m[13] * m[3] * m[10];
+            inv.m10 = -m.m10 * m.m22 * m.m33 +
+                      m.m10 * m.m32 * m.m23 +
+                      m.m12 * m.m20 * m.m33 -
+                      m.m12 * m.m30 * m.m23 -
+                      m.m13 * m.m20 * m.m32 +
+                      m.m13 * m.m30 * m.m22;
 
-            inv[5] = m[0] * m[10] * m[15] -
-                     m[0] * m[11] * m[14] -
-                     m[8] * m[2] * m[15] +
-                     m[8] * m[3] * m[14] +
-                     m[12] * m[2] * m[11] -
-                     m[12] * m[3] * m[10];
+            inv.m11 = m.m00 * m.m22 * m.m33 -
+                     m.m00 * m.m32 * m.m23 -
+                     m.m02 * m.m20 * m.m33 +
+                     m.m02 * m.m30 * m.m23 +
+                     m.m03 * m.m20 * m.m32 -
+                     m.m03 * m.m30 * m.m22;
 
-            inv[9] = -m[0] * m[9] * m[15] +
-                      m[0] * m[11] * m[13] +
-                      m[8] * m[1] * m[15] -
-                      m[8] * m[3] * m[13] -
-                      m[12] * m[1] * m[11] +
-                      m[12] * m[3] * m[9];
+            inv.m12 = -m.m00 * m.m12 * m.m33 +
+                      m.m00 * m.m32 * m.m13 +
+                      m.m02 * m.m10 * m.m33 -
+                      m.m02 * m.m30 * m.m13 -
+                      m.m03 * m.m10 * m.m32 +
+                      m.m03 * m.m30 * m.m12;
 
-            inv[13] = m[0] * m[9] * m[14] -
-                      m[0] * m[10] * m[13] -
-                      m[8] * m[1] * m[14] +
-                      m[8] * m[2] * m[13] +
-                      m[12] * m[1] * m[10] -
-                      m[12] * m[2] * m[9];
+            inv.m13 = m.m00 * m.m12 * m.m23 -
+                      m.m00 * m.m22 * m.m13 -
+                      m.m02 * m.m10 * m.m23 +
+                      m.m02 * m.m20 * m.m13 +
+                      m.m03 * m.m10 * m.m22 -
+                      m.m03 * m.m20 * m.m12;
 
-            inv[2] = m[1] * m[6] * m[15] -
-                     m[1] * m[7] * m[14] -
-                     m[5] * m[2] * m[15] +
-                     m[5] * m[3] * m[14] +
-                     m[13] * m[2] * m[7] -
-                     m[13] * m[3] * m[6];
+            inv.m20 = m.m10 * m.m21 * m.m33 - 
+                     m.m10 * m.m31 * m.m23 - 
+                     m.m11 * m.m20 * m.m33 + 
+                     m.m11 * m.m30 * m.m23 + 
+                     m.m13 * m.m20 * m.m31 - 
+                     m.m13 * m.m30 * m.m21;
 
-            inv[6] = -m[0] * m[6] * m[15] +
-                      m[0] * m[7] * m[14] +
-                      m[4] * m[2] * m[15] -
-                      m[4] * m[3] * m[14] -
-                      m[12] * m[2] * m[7] +
-                      m[12] * m[3] * m[6];
+            inv.m21 = -m.m00 * m.m21 * m.m33 + 
+                      m.m00 * m.m31 * m.m23 + 
+                      m.m01 * m.m20 * m.m33 - 
+                      m.m01 * m.m30 * m.m23 - 
+                      m.m03 * m.m20 * m.m31 + 
+                      m.m03 * m.m30 * m.m21;
 
-            inv[10] = m[0] * m[5] * m[15] -
-                      m[0] * m[7] * m[13] -
-                      m[4] * m[1] * m[15] +
-                      m[4] * m[3] * m[13] +
-                      m[12] * m[1] * m[7] -
-                      m[12] * m[3] * m[5];
+            inv.m22 = m.m00 * m.m11 * m.m33 - 
+                      m.m00 * m.m31 * m.m13 - 
+                      m.m01 * m.m10 * m.m33 + 
+                      m.m01 * m.m30 * m.m13 + 
+                      m.m03 * m.m10 * m.m31 - 
+                      m.m03 * m.m30 * m.m11;
 
-            inv[14] = -m[0] * m[5] * m[14] +
-                       m[0] * m[6] * m[13] +
-                       m[4] * m[1] * m[14] -
-                       m[4] * m[2] * m[13] -
-                       m[12] * m[1] * m[6] +
-                       m[12] * m[2] * m[5];
+            inv.m23 = -m.m00 * m.m11 * m.m23 + 
+                       m.m00 * m.m21 * m.m13 + 
+                       m.m01 * m.m10 * m.m23 - 
+                       m.m01 * m.m20 * m.m13 - 
+                       m.m03 * m.m10 * m.m21 + 
+                       m.m03 * m.m20 * m.m11;
 
-            inv[3] = -m[1] * m[6] * m[11] +
-                      m[1] * m[7] * m[10] +
-                      m[5] * m[2] * m[11] -
-                      m[5] * m[3] * m[10] -
-                      m[9] * m[2] * m[7] +
-                      m[9] * m[3] * m[6];
+            inv.m30 = -m.m10 * m.m21 * m.m32 + 
+                      m.m10 * m.m31 * m.m22 + 
+                      m.m11 * m.m20 * m.m32 - 
+                      m.m11 * m.m30 * m.m22 - 
+                      m.m12 * m.m20 * m.m31 + 
+                      m.m12 * m.m30 * m.m21;
 
-            inv[7] = m[0] * m[6] * m[11] -
-                     m[0] * m[7] * m[10] -
-                     m[4] * m[2] * m[11] +
-                     m[4] * m[3] * m[10] +
-                     m[8] * m[2] * m[7] -
-                     m[8] * m[3] * m[6];
+            inv.m31 = m.m00 * m.m21 * m.m32 - 
+                     m.m00 * m.m31 * m.m22 - 
+                     m.m01 * m.m20 * m.m32 + 
+                     m.m01 * m.m30 * m.m22 + 
+                     m.m02 * m.m20 * m.m31 - 
+                     m.m02 * m.m30 * m.m21;
 
-            inv[11] = -m[0] * m[5] * m[11] +
-                       m[0] * m[7] * m[9] +
-                       m[4] * m[1] * m[11] -
-                       m[4] * m[3] * m[9] -
-                       m[8] * m[1] * m[7] +
-                       m[8] * m[3] * m[5];
+            inv.m32 = -m.m00 * m.m11 * m.m32 + 
+                       m.m00 * m.m31 * m.m12 + 
+                       m.m01 * m.m10 * m.m32 - 
+                       m.m01 * m.m30 * m.m12 - 
+                       m.m02 * m.m10 * m.m31 + 
+                       m.m02 * m.m30 * m.m11;
 
-            inv[15] = m[0] * m[5] * m[10] -
-                      m[0] * m[6] * m[9] -
-                      m[4] * m[1] * m[10] +
-                      m[4] * m[2] * m[9] +
-                      m[8] * m[1] * m[6] -
-                      m[8] * m[2] * m[5];
+            inv.m33 = m.m00 * m.m11 * m.m22 - 
+                      m.m00 * m.m21 * m.m12 - 
+                      m.m01 * m.m10 * m.m22 + 
+                      m.m01 * m.m20 * m.m12 + 
+                      m.m02 * m.m10 * m.m21 - 
+                      m.m02 * m.m20 * m.m11;
 
-            det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+            det = m.m00 * inv.m00 + m.m10 * inv[4] + m.m20 * inv[8] + m.m30 * inv[12];
 
             if (det == 0)
                 return m;
 
-            det = 1f / det;
+            det = 1.0f / det;
 
             for (i = 0; i < 16; i++)
                 inv[i] *= det;
+
 
             return inv;
         }

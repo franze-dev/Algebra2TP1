@@ -7,7 +7,6 @@ using UnityEngine.Internal;
 
 namespace CustomMath
 {
-
     public class CustomQuaternion
     {
         public float x;
@@ -31,12 +30,20 @@ namespace CustomMath
             this.w = w;
         }
 
+        public CustomQuaternion(Vec3 v, float w)
+        {
+            this.x = v.x;
+            this.y = v.y;
+            this.z = v.z;
+            this.w = w;
+        }
+
         public Vec3 eulerAngles
         {
-            get => MakePositive(ToEulerRad(this) * 57.29578f);
+            get => MakePositive(ToEulerRad(this) * Mathf.Rad2Deg);
             set
             {
-                CustomQuaternion q = FromEulerRad(value * (MathF.PI / 180f));
+                CustomQuaternion q = FromEulerRad(value * Mathf.Deg2Rad);
 
                 Set(q.x, q.y, q.z, q.w);
             }
@@ -44,35 +51,38 @@ namespace CustomMath
 
         public CustomQuaternion normalized => Normalize(this);
 
+        /// <summary>
+        /// Finds the shortest rotation from one vector to another.
+        /// https://stackoverflow.com/questions/1171849/finding-quaternion-representing-the-rotation-from-one-vector-to-another
+        /// </summary>
+        /// <param name="fromDirection"></param>
+        /// <param name="toDirection"></param>
+        /// <returns></returns>
         public static CustomQuaternion FromToRotation(Vec3 fromDirection, Vec3 toDirection)
         {
-            var from = fromDirection.normalized;
-            var to = toDirection.normalized;
+            var cross = Vec3.Cross(fromDirection, toDirection);
 
-            Vec3 axis;
-            var dot = Vec3.Dot(from, to);
-
-            if (IsEqualUsingDot(dot))
-                return Identity;
-
-            // if vectors are opposite
-            if (dot < -1 + kEpsilon)
+            if (cross.sqrMagnitude < kEpsilon)
             {
-                // find an axis that is orthogonal to 'from'
-                axis = Vec3.Cross(Vec3.right, from);
-                if (axis.sqrMagnitude < kEpsilon)
-                    axis = Vec3.Cross(from, Vec3.up);
-
-                axis.Normalize();
-                return AngleAxis(180f, axis);
+                // Vectors are parallel
+                if (Vec3.Dot(fromDirection, toDirection) > 0f)
+                    //Same direction
+                    return Identity;
+                // Opposite direction
+                return AngleAxis(180f, fromDirection.normalized);
             }
 
-            axis = Vec3.Cross(from, to);
-            var angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f));
+            var w = Mathf.Sqrt(fromDirection.sqrMagnitude * toDirection.sqrMagnitude) + Vec3.Dot(fromDirection, toDirection);
 
-            return AngleAxis(angle * Mathf.Rad2Deg, axis);
+            return Normalize(new(cross, w));
         }
 
+        /// <summary>
+        /// Inverts a rotation.
+        /// https://www.mathworks.com/help/aeroblks/quaternioninverse.html
+        /// </summary>
+        /// <param name="rotation"></param>
+        /// <returns></returns>
         public static CustomQuaternion Inverse(CustomQuaternion rotation)
         {
             var sqrMag = Dot(rotation, rotation);
@@ -88,6 +98,10 @@ namespace CustomMath
             );
         }
 
+        /// <summary>
+        /// Inverts this rotation.
+        /// </summary>
+        /// <returns></returns>
         public CustomQuaternion Inverse()
         {
             return Inverse(this);
@@ -100,6 +114,13 @@ namespace CustomMath
             return SlerpUnclamped(a, b, t);
         }
 
+        /// <summary>
+        /// This interpolates between quaternions a and b by t.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static CustomQuaternion SlerpUnclamped(CustomQuaternion a, CustomQuaternion b, float t)
         {
             var nA = a.normalized;
@@ -133,6 +154,13 @@ namespace CustomMath
             return LerpUnclamped(a, b, t);
         }
 
+        /// <summary>
+        /// Linearly interpolates between two quaternions by t.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static CustomQuaternion LerpUnclamped(CustomQuaternion a, CustomQuaternion b, float t)
         {
             var lerpT = (1 - t);
@@ -149,70 +177,56 @@ namespace CustomMath
 
         /// <summary>
         /// Receives euler angles in radians and returns the corresponding quaternion.
+        /// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
         /// </summary>
         /// <param name="euler"></param>
         /// <returns></returns>
         private static CustomQuaternion FromEulerRad(Vec3 euler)
         {
-            var sinAngle = Mathf.Sin(euler.z * 0.5f);
-            var cosAngle = Mathf.Cos(euler.z * 0.5f);
-            var qz = new CustomQuaternion(0, 0, sinAngle, cosAngle);
+            var roll = euler.z;
+            var pitch = euler.x;
+            var yaw = euler.y;
 
-            sinAngle = Mathf.Sin(euler.x * 0.5f);
-            cosAngle = Mathf.Cos(euler.x * 0.5f);
-            var qx = new CustomQuaternion(sinAngle, 0, 0, cosAngle);
+            float cr = Mathf.Cos(roll * 0.5f);
+            float sr = Mathf.Sin(roll * 0.5f);
+            float cp = Mathf.Cos(pitch * 0.5f);
+            float sp = Mathf.Sin(pitch * 0.5f);
+            float cy = Mathf.Cos(yaw * 0.5f);
+            float sy = Mathf.Sin(yaw * 0.5f);
 
-            sinAngle = Mathf.Sin(euler.y * 0.5f);
-            cosAngle = Mathf.Cos(euler.y * 0.5f);
-            var qy = new CustomQuaternion(0, sinAngle, 0, cosAngle);
+            float w = cr * cp * cy + sr * sp * sy;
+            float x = sr * cp * cy - cr * sp * sy;
+            float y = cr * sp * cy + sr * cp * sy;
+            float z = cr * cp * sy - sr * sp * cy;
 
-            return qz * qx * qy;
+            return new(x, y, z, w);
         }
 
+        /// <summary>
+        /// Receives a quaternion and returns the corresponding euler angles in radians.
+        /// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+        /// </summary>
+        /// <param name="rotation"></param>
+        /// <returns></returns>
         private static Vec3 ToEulerRad(CustomQuaternion rotation)
         {
-            float sRoll = 2f * (rotation.w * rotation.x + rotation.y * rotation.z);
-            float cRoll = 1f - 2f * (rotation.x * rotation.x + rotation.y * rotation.y);
-            float roll = Mathf.Atan2(sRoll, cRoll);
+            CustomQuaternion q = rotation.normalized;
 
-            float sPitch = 2f * (rotation.w * rotation.y - rotation.z * rotation.x);
-            var sign = Mathf.Sign(sPitch);
-            float pitch = Mathf.Abs(sPitch) >= 1f ?
-                Mathf.Abs(Mathf.PI / 2f) * sign :
-                Mathf.Asin(sPitch);
+            var roll = Mathf.Atan2(2f * (q.w * q.x + q.y * q.z), 1f - 2f * (q.x * q.x + q.y * q.y));
 
-            float sYaw = 2f * (rotation.w * rotation.z + rotation.x * rotation.y);
-            float cYaw = 1f - 2f * (rotation.y * rotation.y + rotation.z * rotation.z);
-            float yaw = Mathf.Atan2(sYaw, cYaw);
+            var pitch = Mathf.Asin(2 * (q.w * q.y) - q.x * q.z);
 
-            return new Vec3(pitch, yaw, roll);
+            var yaw = Mathf.Atan2(2f * (q.w * q.z + q.x * q.y), 1f - 2f * (q.y * q.y + q.z * q.z));
+
+            return new(pitch, yaw, roll);
         }
 
-        private static void ToAxisAngleRad(CustomQuaternion q, out Vec3 axis, out float angle)
-        {
-            q.Normalize();
-
-            // If I used q == _identity here, _identity could be negative. While mathematically correct,
-            // it would fail the dot comparison in IsEqualUsingDot (== operator)
-            if (Mathf.Abs(q.x) < kEpsilon &&
-                Mathf.Abs(q.y) < kEpsilon &&
-                Mathf.Abs(q.z) < kEpsilon)
-            {
-                axis = new Vec3(1f, 0f, 0f);
-                angle = 0f;
-                return;
-            }
-
-            angle = 2f * Mathf.Acos(q.w);
-
-            var axisMag = Mathf.Sqrt(1f - q.w * q.w);
-
-            if (axisMag < kEpsilon)
-                axis = new Vec3(1f, 0f, 0f);
-            else
-                axis = new Vec3(q.x / axisMag, q.y / axisMag, q.z / axisMag);
-        }
-
+        /// <summary>
+        /// It creates a rotation which rotates angle degrees around axis.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <param name="axis"></param>
+        /// <returns></returns>
         public static CustomQuaternion AngleAxis(float angle, Vec3 axis)
         {
             if (axis.sqrMagnitude < kEpsilon)
@@ -220,7 +234,7 @@ namespace CustomMath
 
             axis = axis.normalized;
 
-            float half = angle * Mathf.Deg2Rad * 0.5f;
+            float half = (angle * Mathf.Deg2Rad) * 0.5f;
 
             float sin = Mathf.Sin(half);
             float cos = Mathf.Cos(half);
@@ -253,9 +267,9 @@ namespace CustomMath
             CustomMatrix4x4 m = new();
 
             m.SetColumn(0, new Vector4(right.x, right.y, right.z, 0));
-            m.SetColumn(1, new Vector4(up.x, up.y, up.z, 0));
-            m.SetColumn(2, new Vector4(fw.x, fw.y, fw.z, 0));
-            m.SetColumn(3, new Vector4(0, 0, 0, 1));
+            m.SetColumn(1, new Vector4(up.x,    up.y,    up.z,    0));
+            m.SetColumn(2, new Vector4(fw.x,    fw.y,    fw.z,    0));
+            m.SetColumn(3, new Vector4(0,       0,       0,       1));
 
             CustomQuaternion q = m.rotation;
 
@@ -306,13 +320,21 @@ namespace CustomMath
             return !(lhs == rhs);
         }
 
+        /// <summary>
+        /// If it returns 1 the quaternions are equal, 
+        /// if it returns -1 they are opposite.
+        /// If it returns 0 they are orthogonal.
+        /// https://www.cs.ucdavis.edu/~amenta/3dphoto/quaternion.pdf
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static float Dot(CustomQuaternion a, CustomQuaternion b)
         {
-            return
-                a.x * b.x +
-                a.y * b.y +
-                a.z * b.z +
-                a.w * b.w;
+            return a.x * b.x +
+                   a.y * b.y +
+                   a.z * b.z +
+                   a.w * b.w;
         }
 
         public void SetLookRotation(Vec3 view)
@@ -361,12 +383,6 @@ namespace CustomMath
         public static CustomQuaternion Euler(Vec3 euler)
         {
             return FromEulerRad(euler * (MathF.PI / 180f));
-        }
-
-        public void ToAngleAxis(out float angle, out Vec3 axis)
-        {
-            ToAxisAngleRad(this, out axis, out angle);
-            angle *= 57.29578f;
         }
 
         public void SetFromToRotation(Vec3 fromDirection, Vec3 toDirection)
