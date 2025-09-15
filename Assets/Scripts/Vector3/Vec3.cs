@@ -10,13 +10,25 @@ namespace CustomMath
         public float y;
         public float z;
 
-        public float sqrMagnitude { get => magnitude * magnitude; }
+        /// <summary>
+        /// Vector magnitude squared. Useful for comparisons. It avoids an expensive square root calculation.
+        /// </summary>
+        public float sqrMagnitude { get => x * x + y * y + z * z; }
+        /// <summary>
+        /// This vector with a magnitude of 1.
+        /// </summary>
         public Vec3 normalized { get => this / magnitude; }
+        /// <summary>
+        /// The length/norm of the vector.
+        /// </summary>
         public float magnitude { get => Magnitude(this); }
 
         #endregion
 
         #region constants
+        /// <summary>
+        /// A small value that is used for floating point comparisons.
+        /// </summary>
         public const float epsilon = 1e-05f;
         #endregion
 
@@ -24,11 +36,11 @@ namespace CustomMath
         public static Vec3 zero { get { return new Vec3(0.0f, 0.0f, 0.0f); } }
         public static Vec3 one { get { return new Vec3(1.0f, 1.0f, 1.0f); } }
         public static Vec3 forward { get { return new Vec3(0.0f, 0.0f, 1.0f); } }
-        public static Vec3 back { get { return new Vec3(0.0f, 0.0f, -1.0f); } }
         public static Vec3 right { get { return new Vec3(1.0f, 0.0f, 0.0f); } }
-        public static Vec3 left { get { return new Vec3(-1.0f, 0.0f, 0.0f); } }
         public static Vec3 up { get { return new Vec3(0.0f, 1.0f, 0.0f); } }
-        public static Vec3 down { get { return new Vec3(0.0f, -1.0f, 0.0f); } }
+        public static Vec3 back { get { return -forward; } }
+        public static Vec3 left { get { return -right; } }
+        public static Vec3 down { get { return -up; } }
         public static Vec3 positiveInfinity { get { return new Vec3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity); } }
         public static Vec3 negativeInfinity { get { return new Vec3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity); } }
         #endregion                                                                                                                                                                               
@@ -71,27 +83,34 @@ namespace CustomMath
         #endregion
 
         #region Operators
-        public static bool operator ==(Vec3 left, Vec3 right)
+        /// <summary>
+        /// Calculculates if two vectors are equal using the squared magnitude of their difference.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static bool operator ==(Vec3 a, Vec3 b)
         {
-            float diff_x = left.x - right.x;
-            float diff_y = left.y - right.y;
-            float diff_z = left.z - right.z;
-            float sqrmag = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
-            return sqrmag < epsilon * epsilon;
-        }
-        public static bool operator !=(Vec3 left, Vec3 right)
-        {
-            return !(left == right);
-        }
-
-        public static Vec3 operator +(Vec3 leftV3, Vec3 rightV3)
-        {
-            return new Vec3(leftV3.x + rightV3.x, leftV3.y + rightV3.y, leftV3.z + rightV3.z);
+            float diff_x = a.x - b.x;
+            float diff_y = a.y - b.y;
+            float diff_z = a.z - b.z;
+            Vec3 diff = new Vec3(diff_x, diff_y, diff_z);
+            return diff.sqrMagnitude < epsilon * epsilon;
         }
 
-        public static Vec3 operator -(Vec3 leftV3, Vec3 rightV3)
+        public static bool operator !=(Vec3 a, Vec3 b)
         {
-            return new Vec3(leftV3.x - rightV3.x, leftV3.y - rightV3.y, leftV3.z - rightV3.z);
+            return !(a == b);
+        }
+
+        public static Vec3 operator +(Vec3 a, Vec3 b)
+        {
+            return new Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+        }
+
+        public static Vec3 operator -(Vec3 a, Vec3 b)
+        {
+            return new Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
         }
 
         public static Vec3 operator -(Vec3 v3)
@@ -99,6 +118,12 @@ namespace CustomMath
             return new Vec3(-v3.x, -v3.y, -v3.z);
         }
 
+        /// <summary>
+        /// Vector multiplied by a scalar. It can scale the vector up or down. (If the scalar is negative, the vector direction is reversed.)
+        /// </summary>
+        /// <param name="v3"></param>
+        /// <param name="scalar"></param>
+        /// <returns></returns>
         public static Vec3 operator *(Vec3 v3, float scalar)
         {
             return new Vec3(v3.x * scalar, v3.y * scalar, v3.z * scalar);
@@ -137,22 +162,29 @@ namespace CustomMath
                 a.z / b.z
                 );
         }
-        public static Vec3 operator /(Vec3 v3, float scalar)
+
+        /// <summary>
+        /// Vector scaled down by a scalar. If the scalar is less than or equal to zero, the original vector is returned.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="scalar"></param>
+        /// <returns></returns>
+        public static Vec3 operator /(Vec3 a, float scalar)
         {
             if (scalar <= 0)
-                return v3;
+                return a;
 
-            return new Vec3(v3.x / scalar, v3.y / scalar, v3.z / scalar);
+            return new Vec3(a.x / scalar, a.y / scalar, a.z / scalar);
         }
 
-        public static implicit operator Vector3(Vec3 v3)
+        public static implicit operator Vector3(Vec3 a)
         {
-            return new Vector3(v3.x, v3.y, v3.z);
+            return new Vector3(a.x, a.y, a.z);
         }
 
-        public static implicit operator Vector2(Vec3 v2)
+        public static implicit operator Vector2(Vec3 a)
         {
-            return new Vector2(v2.x, v2.y);
+            return new Vector2(a.x, a.y);
         }
         #endregion
 
@@ -161,20 +193,24 @@ namespace CustomMath
         {
             return "X = " + x.ToString() + "   Y = " + y.ToString() + "   Z = " + z.ToString();
         }
+
+        /// <summary>
+        /// Returns the angle in degrees between from and to.
+        /// https://www.mathworks.com/matlabcentral/answers/2092961-how-to-calculate-the-angle-between-two-3d-vectors
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
         public static float Angle(Vec3 from, Vec3 to)
         {
-            float dot = Dot(from.normalized, to.normalized);
-            float mag1 = from.magnitude;
-            float mag2 = to.magnitude;
+            var dot = Dot(from, to);
 
-            if (mag1 < epsilon || mag2 < epsilon)
-                return 0f;
+            if (dot == 0)
+                return 90f;
 
-            float cosTheta = dot / (mag1 * mag2); 
+            var cosTheta = dot / (Magnitude(from) * Magnitude(to));
 
-            cosTheta = Mathf.Clamp(cosTheta, -1f, 1f);
-
-            return Mathf.Acos(cosTheta) * Mathf.Rad2Deg;
+            return Mathf.Clamp(cosTheta, -1f, 1f);
         }
         public static Vec3 ClampMagnitude(Vec3 vector, float maxLength)
         {
@@ -187,10 +223,28 @@ namespace CustomMath
 
             return vector * (maxLength / mag);
         }
+
+        /// <summary>
+        /// Magnitude of a vector. It is always a positive/zero value.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
         public static float Magnitude(Vec3 vector)
         {
-            return Mathf.Sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+            return Magnitude(vector.x, vector.y, vector.z);
         }
+
+        public static float Magnitude(float x, float y, float z)
+        {
+            return Mathf.Sqrt(x * x + y * y + z * z);
+        }
+
+        /// <summary>
+        /// Returns a vector that is perpendicular to the two input vectors.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static Vec3 Cross(Vec3 a, Vec3 b)
         {
             return new Vec3(
@@ -199,21 +253,36 @@ namespace CustomMath
                 a.x * b.y - a.y * b.x
             );
         }
+
+        /// <summary>
+        /// Returns the distance between two points by creating a vector between them and returning its magnitude.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static float Distance(Vec3 a, Vec3 b)
         {
             float x = a.x - b.x;
             float y = a.y - b.y;
             float z = a.z - b.z;
-            x *= x;
-            y *= y;
-            z *= z;
 
-            return Mathf.Sqrt(x + y + z);
+            return Magnitude(x, y, z);
         }
+
+        /// <summary>
+        /// The euclidean dot product of two vectors. It is the product of the magnitudes of the two vectors and the cosine of the angle between them.
+        /// Returns a positive value if the angle between the vectors is less than 90 degrees, 
+        /// negative if it's greater than 90 degrees, 
+        /// and zero if the vectors are orthogonal (perpendicular).
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static float Dot(Vec3 a, Vec3 b)
         {
             return a.x * b.x + a.y * b.y + a.z * b.z;
         }
+
         public static Vec3 Lerp(Vec3 a, Vec3 b, float t)
         {
             if (t < epsilon)
@@ -255,7 +324,7 @@ namespace CustomMath
         public static Vec3 Project(Vec3 vector, Vec3 onNormal)
         {
             if (onNormal.sqrMagnitude < epsilon * epsilon)
-                return zero; 
+                return zero;
 
             float dot = Dot(vector, onNormal);
             float sqrMag = SqrMagnitude(onNormal);
