@@ -26,11 +26,6 @@ namespace CustomMath
                                                                                  new Vector4(0f, 0f, 0f, 0f),
                                                                                  new Vector4(0f, 0f, 0f, 0f));
 
-        private static readonly CustomMatrix4x4 identityMatrix = new CustomMatrix4x4(new Vector4(1f, 0f, 0f, 0f),
-                                                                                     new Vector4(0f, 1f, 0f, 0f),
-                                                                                     new Vector4(0f, 0f, 1f, 0f),
-                                                                                     new Vector4(0f, 0f, 0f, 1f));
-
         public CustomQuaternion rotation => GetRotation();
         public Vec3 lossyScale => GetLossyScale();
 
@@ -150,7 +145,7 @@ namespace CustomMath
 
         /// <summary>
         /// Returns the rotation component of the matrix as a quaternion.
-        /// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/?utm_source=chatgpt.com
+        /// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
         /// </summary>
         /// <returns></returns>
         private CustomQuaternion GetRotation()
@@ -213,7 +208,7 @@ namespace CustomMath
 
         private bool IsIdentity()
         {
-            return this == identityMatrix;
+            return this == identity;
         }
 
         public bool ValidTRS()
