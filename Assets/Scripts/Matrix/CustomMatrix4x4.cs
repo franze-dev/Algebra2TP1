@@ -322,6 +322,10 @@ namespace CustomMath
             return !(lhs == rhs);
         }
 
+        public static explicit operator Matrix4x4(CustomMatrix4x4 v)
+        {
+            throw new NotImplementedException();
+        }
 
         public Vec3 GetPosition()
         {
@@ -352,9 +356,7 @@ namespace CustomMath
             float w = m30 * point.x + m31 * point.y + m32 * point.z + m33;
 
             if (Mathf.Abs(w) > Mathf.Epsilon)
-            {
                 return new Vec3(x / w, y / w, z / w);
-            }
 
             return new Vec3(x, y, z);
         }
@@ -450,7 +452,6 @@ namespace CustomMath
         /// <summary>
         /// https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
         /// https://rodolphe-vaillant.fr/entry/7/c-code-for-4x4-matrix-inversion
-        /// 
         /// </summary>
         /// <returns></returns>
         public CustomMatrix4x4 Inverse()

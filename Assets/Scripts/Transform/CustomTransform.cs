@@ -4,6 +4,8 @@ namespace CustomMath
 {
     /// <summary>
     /// https://developer.unigine.com/en/docs/latest/code/fundamentals/matrix_transformations/index?implementationLanguage=cpp
+    /// https://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf
+    /// https://learnopengl.com/Getting-started/Transformations
     /// </summary>
     public class CustomTransform : MonoBehaviour
     {
@@ -13,8 +15,6 @@ namespace CustomMath
         public CustomQuaternion localRotation;
 
         public CustomTransform parent;
-
-        Transform t;
 
         private void Awake()
         {
@@ -43,54 +43,6 @@ namespace CustomMath
             }
         }
 
-        public Vec3 localEulerAngles
-        {
-            get
-            {
-                return localRotation.eulerAngles;
-            }
-            set
-            {
-                localRotation = CustomQuaternion.Euler(value);
-            }
-        }
-
-        public Vec3 right
-        {
-            get
-            {
-                return rotation * Vec3.right;
-            }
-            set
-            {
-                rotation = CustomQuaternion.FromToRotation(Vec3.right, value);
-            }
-        }
-
-        public Vec3 up
-        {
-            get
-            {
-                return rotation * Vec3.up;
-            }
-            set
-            {
-                rotation = CustomQuaternion.FromToRotation(Vec3.up, value);
-            }
-        }
-
-        public Vec3 forward
-        {
-            get
-            {
-                return rotation * Vec3.forward;
-            }
-            set
-            {
-                rotation = CustomQuaternion.LookRotation(value);
-            }
-        }
-
         public CustomQuaternion rotation
         {
             get
@@ -110,21 +62,20 @@ namespace CustomMath
         {
             get
             {
-                var S = CustomMatrix4x4.Scale(localScale);
-                var R = CustomMatrix4x4.Rotate(localRotation);
-                var T = CustomMatrix4x4.Translate(localPosition);
-
-                var local = T * R * S;
-
-                return local;
+                return localToWorldMatrix.Inverse();
             }
         }
 
+        /// <summary>
+        /// Convert a point from local space to world space.
+        /// 
+        /// </summary>
         public CustomMatrix4x4 localToWorldMatrix
         {
             get
             {
-                return parent != null ? parent.localToWorldMatrix * worldToLocalMatrix : worldToLocalMatrix;
+                var local = CustomMatrix4x4.TRS(localPosition, localRotation, localScale);
+                return parent != null ? parent.localToWorldMatrix * local : local;
             }
         }
 
@@ -143,35 +94,12 @@ namespace CustomMath
         /// <param name="worldPositionStays"></param>
         public void SetParent(CustomTransform parent, bool worldPositionStays = true)
         {
-            if (this.parent == parent)
-                return;
-
-            var worldT = position;
-            var worldR = rotation;
-            var worldS = lossyScale;
-
-            if (!worldPositionStays)
+            if (worldPositionStays)
             {
-                this.parent = parent;
-                return;
+                localPosition = position;
+                localRotation = rotation;
+                localScale = lossyScale;
             }
-
-            CustomMatrix4x4 worldMat = CustomMatrix4x4.TRS(worldT, worldR, worldS);
-
-            CustomMatrix4x4 localMat;
-
-            if (parent)
-            {
-                localMat = parent.worldToLocalMatrix * worldToLocalMatrix;
-            }
-            else
-            {
-                localMat = worldMat;
-            }
-
-            localPosition = localMat.GetPosition();
-            localRotation = localMat.rotation;
-            localScale = localMat.lossyScale;
 
             this.parent = parent;
         }

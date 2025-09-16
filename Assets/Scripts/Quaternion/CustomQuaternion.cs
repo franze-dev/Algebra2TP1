@@ -1,9 +1,5 @@
 using System;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Internal;
 
 namespace CustomMath
 {
@@ -199,7 +195,7 @@ namespace CustomMath
             float y = cr * sp * cy + sr * cp * sy;
             float z = cr * cp * sy - sr * sp * cy;
 
-            return new(x, y, z, w);
+            return Normalize(new(x, y, z, w));
         }
 
         /// <summary>
@@ -382,7 +378,7 @@ namespace CustomMath
 
         public static CustomQuaternion Euler(Vec3 euler)
         {
-            return FromEulerRad(euler * (MathF.PI / 180f));
+            return FromEulerRad(euler * Mathf.Deg2Rad);
         }
 
         public void SetFromToRotation(Vec3 fromDirection, Vec3 toDirection)
