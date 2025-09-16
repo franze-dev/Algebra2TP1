@@ -32,7 +32,7 @@ namespace CustomMath
             get
             {
                 return parent != null ?
-                    parent.localToWorldMatrix.MultiplyPoint(localPosition) :
+                    parent.localToWorldMatrix.MultiplyPoint(localPosition):
                     localPosition;
             }
             set

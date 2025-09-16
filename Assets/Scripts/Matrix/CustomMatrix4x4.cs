@@ -143,7 +143,10 @@ namespace CustomMath
         }
 
         public static CustomMatrix4x4 zero => zeroMatrix;
-        public static CustomMatrix4x4 identity => identityMatrix;
+        public static CustomMatrix4x4 identity => new CustomMatrix4x4(new Vector4(1f, 0f, 0f, 0f),
+                                                                      new Vector4(0f, 1f, 0f, 0f),
+                                                                      new Vector4(0f, 0f, 1f, 0f),
+                                                                      new Vector4(0f, 0f, 0f, 1f));
 
         /// <summary>
         /// Returns the rotation component of the matrix as a quaternion.
@@ -230,7 +233,9 @@ namespace CustomMath
         public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion q, Vec3 s)
         {
             var scale = Scale(s);
+
             var rotation = Rotate(q);
+
             var transform = Translate(pos);
 
             return transform * rotation * scale;
@@ -284,18 +289,22 @@ namespace CustomMath
             result.m01 = lhs.m00 * rhs.m01 + lhs.m01 * rhs.m11 + lhs.m02 * rhs.m21 + lhs.m03 * rhs.m31;
             result.m02 = lhs.m00 * rhs.m02 + lhs.m01 * rhs.m12 + lhs.m02 * rhs.m22 + lhs.m03 * rhs.m32;
             result.m03 = lhs.m00 * rhs.m03 + lhs.m01 * rhs.m13 + lhs.m02 * rhs.m23 + lhs.m03 * rhs.m33;
+
             result.m10 = lhs.m10 * rhs.m00 + lhs.m11 * rhs.m10 + lhs.m12 * rhs.m20 + lhs.m13 * rhs.m30;
             result.m11 = lhs.m10 * rhs.m01 + lhs.m11 * rhs.m11 + lhs.m12 * rhs.m21 + lhs.m13 * rhs.m31;
             result.m12 = lhs.m10 * rhs.m02 + lhs.m11 * rhs.m12 + lhs.m12 * rhs.m22 + lhs.m13 * rhs.m32;
             result.m13 = lhs.m10 * rhs.m03 + lhs.m11 * rhs.m13 + lhs.m12 * rhs.m23 + lhs.m13 * rhs.m33;
+
             result.m20 = lhs.m20 * rhs.m00 + lhs.m21 * rhs.m10 + lhs.m22 * rhs.m20 + lhs.m23 * rhs.m30;
             result.m21 = lhs.m20 * rhs.m01 + lhs.m21 * rhs.m11 + lhs.m22 * rhs.m21 + lhs.m23 * rhs.m31;
             result.m22 = lhs.m20 * rhs.m02 + lhs.m21 * rhs.m12 + lhs.m22 * rhs.m22 + lhs.m23 * rhs.m32;
             result.m23 = lhs.m20 * rhs.m03 + lhs.m21 * rhs.m13 + lhs.m22 * rhs.m23 + lhs.m23 * rhs.m33;
+
             result.m30 = lhs.m30 * rhs.m00 + lhs.m31 * rhs.m10 + lhs.m32 * rhs.m20 + lhs.m33 * rhs.m30;
             result.m31 = lhs.m30 * rhs.m01 + lhs.m31 * rhs.m11 + lhs.m32 * rhs.m21 + lhs.m33 * rhs.m31;
             result.m32 = lhs.m30 * rhs.m02 + lhs.m31 * rhs.m12 + lhs.m32 * rhs.m22 + lhs.m33 * rhs.m32;
             result.m33 = lhs.m30 * rhs.m03 + lhs.m31 * rhs.m13 + lhs.m32 * rhs.m23 + lhs.m33 * rhs.m33;
+
             return result;
         }
 
@@ -519,60 +528,60 @@ namespace CustomMath
                       m.m03 * m.m10 * m.m22 -
                       m.m03 * m.m20 * m.m12;
 
-            inv.m20 = m.m10 * m.m21 * m.m33 - 
-                     m.m10 * m.m31 * m.m23 - 
-                     m.m11 * m.m20 * m.m33 + 
-                     m.m11 * m.m30 * m.m23 + 
-                     m.m13 * m.m20 * m.m31 - 
+            inv.m20 = m.m10 * m.m21 * m.m33 -
+                     m.m10 * m.m31 * m.m23 -
+                     m.m11 * m.m20 * m.m33 +
+                     m.m11 * m.m30 * m.m23 +
+                     m.m13 * m.m20 * m.m31 -
                      m.m13 * m.m30 * m.m21;
 
-            inv.m21 = -m.m00 * m.m21 * m.m33 + 
-                      m.m00 * m.m31 * m.m23 + 
-                      m.m01 * m.m20 * m.m33 - 
-                      m.m01 * m.m30 * m.m23 - 
-                      m.m03 * m.m20 * m.m31 + 
+            inv.m21 = -m.m00 * m.m21 * m.m33 +
+                      m.m00 * m.m31 * m.m23 +
+                      m.m01 * m.m20 * m.m33 -
+                      m.m01 * m.m30 * m.m23 -
+                      m.m03 * m.m20 * m.m31 +
                       m.m03 * m.m30 * m.m21;
 
-            inv.m22 = m.m00 * m.m11 * m.m33 - 
-                      m.m00 * m.m31 * m.m13 - 
-                      m.m01 * m.m10 * m.m33 + 
-                      m.m01 * m.m30 * m.m13 + 
-                      m.m03 * m.m10 * m.m31 - 
+            inv.m22 = m.m00 * m.m11 * m.m33 -
+                      m.m00 * m.m31 * m.m13 -
+                      m.m01 * m.m10 * m.m33 +
+                      m.m01 * m.m30 * m.m13 +
+                      m.m03 * m.m10 * m.m31 -
                       m.m03 * m.m30 * m.m11;
 
-            inv.m23 = -m.m00 * m.m11 * m.m23 + 
-                       m.m00 * m.m21 * m.m13 + 
-                       m.m01 * m.m10 * m.m23 - 
-                       m.m01 * m.m20 * m.m13 - 
-                       m.m03 * m.m10 * m.m21 + 
+            inv.m23 = -m.m00 * m.m11 * m.m23 +
+                       m.m00 * m.m21 * m.m13 +
+                       m.m01 * m.m10 * m.m23 -
+                       m.m01 * m.m20 * m.m13 -
+                       m.m03 * m.m10 * m.m21 +
                        m.m03 * m.m20 * m.m11;
 
-            inv.m30 = -m.m10 * m.m21 * m.m32 + 
-                      m.m10 * m.m31 * m.m22 + 
-                      m.m11 * m.m20 * m.m32 - 
-                      m.m11 * m.m30 * m.m22 - 
-                      m.m12 * m.m20 * m.m31 + 
+            inv.m30 = -m.m10 * m.m21 * m.m32 +
+                      m.m10 * m.m31 * m.m22 +
+                      m.m11 * m.m20 * m.m32 -
+                      m.m11 * m.m30 * m.m22 -
+                      m.m12 * m.m20 * m.m31 +
                       m.m12 * m.m30 * m.m21;
 
-            inv.m31 = m.m00 * m.m21 * m.m32 - 
-                     m.m00 * m.m31 * m.m22 - 
-                     m.m01 * m.m20 * m.m32 + 
-                     m.m01 * m.m30 * m.m22 + 
-                     m.m02 * m.m20 * m.m31 - 
+            inv.m31 = m.m00 * m.m21 * m.m32 -
+                     m.m00 * m.m31 * m.m22 -
+                     m.m01 * m.m20 * m.m32 +
+                     m.m01 * m.m30 * m.m22 +
+                     m.m02 * m.m20 * m.m31 -
                      m.m02 * m.m30 * m.m21;
 
-            inv.m32 = -m.m00 * m.m11 * m.m32 + 
-                       m.m00 * m.m31 * m.m12 + 
-                       m.m01 * m.m10 * m.m32 - 
-                       m.m01 * m.m30 * m.m12 - 
-                       m.m02 * m.m10 * m.m31 + 
+            inv.m32 = -m.m00 * m.m11 * m.m32 +
+                       m.m00 * m.m31 * m.m12 +
+                       m.m01 * m.m10 * m.m32 -
+                       m.m01 * m.m30 * m.m12 -
+                       m.m02 * m.m10 * m.m31 +
                        m.m02 * m.m30 * m.m11;
 
-            inv.m33 = m.m00 * m.m11 * m.m22 - 
-                      m.m00 * m.m21 * m.m12 - 
-                      m.m01 * m.m10 * m.m22 + 
-                      m.m01 * m.m20 * m.m12 + 
-                      m.m02 * m.m10 * m.m21 - 
+            inv.m33 = m.m00 * m.m11 * m.m22 -
+                      m.m00 * m.m21 * m.m12 -
+                      m.m01 * m.m10 * m.m22 +
+                      m.m01 * m.m20 * m.m12 +
+                      m.m02 * m.m10 * m.m21 -
                       m.m02 * m.m20 * m.m11;
 
             det = m.m00 * inv.m00 + m.m10 * inv[4] + m.m20 * inv[8] + m.m30 * inv[12];
