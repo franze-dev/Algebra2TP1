@@ -137,7 +137,6 @@ namespace CustomMath
             };
         }
 
-        public static CustomMatrix4x4 zero => zeroMatrix;
         public static CustomMatrix4x4 identity => new CustomMatrix4x4(new Vector4(1f, 0f, 0f, 0f),
                                                                       new Vector4(0f, 1f, 0f, 0f),
                                                                       new Vector4(0f, 0f, 1f, 0f),
@@ -211,13 +210,6 @@ namespace CustomMath
             return this == identity;
         }
 
-        public bool ValidTRS()
-        {
-            Vec3 scale = lossyScale;
-
-            return scale.x > Mathf.Epsilon && scale.y > Mathf.Epsilon && scale.z > Mathf.Epsilon;
-        }
-
         /// <summary>
         /// https://learnopengl.com/Getting-started/Transformations
         /// </summary>
@@ -234,12 +226,6 @@ namespace CustomMath
             var transform = Translate(pos);
 
             return transform * rotation * scale;
-        }
-        public void SetTRS(Vec3 pos, CustomQuaternion q, Vec3 s)
-        {
-            var mat = TRS(pos, q, s);
-
-            this.Set(mat);
         }
 
         private void Set(CustomMatrix4x4 mat)
@@ -303,16 +289,6 @@ namespace CustomMath
             return result;
         }
 
-        public static Vector4 operator *(CustomMatrix4x4 lhs, Vector4 vector)
-        {
-            Vector4 result = default(Vector4);
-            result.x = lhs.m00 * vector.x + lhs.m01 * vector.y + lhs.m02 * vector.z + lhs.m03 * vector.w;
-            result.y = lhs.m10 * vector.x + lhs.m11 * vector.y + lhs.m12 * vector.z + lhs.m13 * vector.w;
-            result.z = lhs.m20 * vector.x + lhs.m21 * vector.y + lhs.m22 * vector.z + lhs.m23 * vector.w;
-            result.w = lhs.m30 * vector.x + lhs.m31 * vector.y + lhs.m32 * vector.z + lhs.m33 * vector.w;
-            return result;
-        }
-
         public static bool operator ==(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
         {
             return lhs.GetColumn(0) == rhs.GetColumn(0) &&
@@ -326,30 +302,12 @@ namespace CustomMath
             return !(lhs == rhs);
         }
 
-        public static explicit operator Matrix4x4(CustomMatrix4x4 v)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Vec3 GetPosition()
-        {
-            return new Vec3(m03, m13, m23);
-        }
-
         public void SetColumn(int index, Vector4 column)
         {
             this[0, index] = column.x;
             this[1, index] = column.y;
             this[2, index] = column.z;
             this[3, index] = column.w;
-        }
-
-        public void SetRow(int index, Vector4 row)
-        {
-            this[index, 0] = row.x;
-            this[index, 1] = row.y;
-            this[index, 2] = row.z;
-            this[index, 3] = row.w;
         }
 
         public Vec3 MultiplyPoint(Vec3 point)
@@ -363,17 +321,6 @@ namespace CustomMath
                 return new Vec3(x / w, y / w, z / w);
 
             return new Vec3(x, y, z);
-        }
-
-        public Vec3 MultiplyPoint3x4(Vec3 point)
-        {
-            var vec = MultiplyVector(point);
-
-            vec.x += m03;
-            vec.y += m13;
-            vec.z += m23;
-
-            return vec;
         }
 
         public Vec3 MultiplyVector(Vec3 point)

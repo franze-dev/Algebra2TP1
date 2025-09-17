@@ -57,7 +57,6 @@ namespace CustomMath
             }
         }
 
-
         public CustomMatrix4x4 worldToLocalMatrix
         {
             get
@@ -102,16 +101,6 @@ namespace CustomMath
             }
 
             this.parent = parent;
-        }
-
-        public Vec3 TransformPoint(Vec3 position)
-        {
-            return localToWorldMatrix.MultiplyPoint(position);
-        }
-
-        public Vec3 InverseTransformPoint(Vec3 position)
-        {
-            return worldToLocalMatrix.MultiplyPoint(position);
         }
     }
 

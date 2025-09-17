@@ -3,7 +3,7 @@ using System;
 namespace CustomMath
 {
     [Serializable]
-    public class Vec3 : IEquatable<Vec3>
+    public class Vec3
     {
         #region Variables
         public float x;
@@ -45,42 +45,12 @@ namespace CustomMath
         public static Vec3 negativeInfinity { get { return new Vec3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity); } }
         #endregion                                                                                                                                                                               
 
-        #region Constructors
-        public Vec3(float x, float y)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = 0.0f;
-        }
-
         public Vec3(float x, float y, float z)
         {
             this.x = x;
             this.y = y;
             this.z = z;
         }
-
-        public Vec3(Vec3 v3)
-        {
-            this.x = v3.x;
-            this.y = v3.y;
-            this.z = v3.z;
-        }
-
-        public Vec3(Vector3 v3)
-        {
-            this.x = v3.x;
-            this.y = v3.y;
-            this.z = v3.z;
-        }
-
-        public Vec3(Vector2 v2)
-        {
-            this.x = v2.x;
-            this.y = v2.y;
-            this.z = 0.0f;
-        }
-        #endregion
 
         #region Operators
         /// <summary>
@@ -89,29 +59,6 @@ namespace CustomMath
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static bool operator ==(Vec3 a, Vec3 b)
-        {
-            float diff_x = a.x - b.x;
-            float diff_y = a.y - b.y;
-            float diff_z = a.z - b.z;
-            Vec3 diff = new Vec3(diff_x, diff_y, diff_z);
-            return diff.sqrMagnitude < epsilon * epsilon;
-        }
-
-        public static bool operator !=(Vec3 a, Vec3 b)
-        {
-            return !(a == b);
-        }
-
-        public static Vec3 operator +(Vec3 a, Vec3 b)
-        {
-            return new Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
-        }
-
-        public static Vec3 operator -(Vec3 a, Vec3 b)
-        {
-            return new Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
-        }
 
         public static Vec3 operator -(Vec3 v3)
         {
@@ -128,10 +75,7 @@ namespace CustomMath
         {
             return new Vec3(v3.x * scalar, v3.y * scalar, v3.z * scalar);
         }
-        public static Vec3 operator *(float scalar, Vec3 v3)
-        {
-            return v3 * scalar;
-        }
+
         /// <summary>
         /// While not mathematically correct, it's useful for multiplying data saved in vectors.
         /// It'd be correct as long as they're not treated as actual vectors.
@@ -145,21 +89,6 @@ namespace CustomMath
                 a.x * b.x,
                 a.y * b.y,
                 a.z * b.z
-                );
-        }
-        /// <summary>
-        /// While not mathematically correct, it's useful for dividing data saved in vectors.
-        /// It'd be correct as long as they're not treated as actual vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 operator /(Vec3 a, Vec3 b)
-        {
-            return new Vec3(
-                a.x / b.x,
-                a.y / b.y,
-                a.z / b.z
                 );
         }
 
@@ -189,31 +118,6 @@ namespace CustomMath
         #endregion
 
         #region Functions
-        public override string ToString()
-        {
-            return "X = " + x.ToString() + "   Y = " + y.ToString() + "   Z = " + z.ToString();
-        }
-
-        /// <summary>
-        /// Returns the angle in degrees between from and to.
-        /// https://www.mathworks.com/matlabcentral/answers/2092961-how-to-calculate-the-angle-between-two-3d-vectors
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public static float Angle(Vec3 from, Vec3 to)
-        {
-            var dot = Dot(from, to);
-
-            if (dot == 0)
-                return 90f;
-
-            var cosTheta = dot / (Magnitude(from) * Magnitude(to));
-
-            cosTheta = Mathf.Clamp(cosTheta, -1f, 1f);
-
-            return Mathf.Acos(cosTheta) * Mathf.Rad2Deg;
-        }
 
         /// <summary>
         /// Magnitude of a vector. It is always a positive/zero value.
@@ -245,130 +149,6 @@ namespace CustomMath
             );
         }
 
-        /// <summary>
-        /// Returns the distance between two points by creating a vector between them and returning its magnitude.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static float Distance(Vec3 a, Vec3 b)
-        {
-            float x = a.x - b.x;
-            float y = a.y - b.y;
-            float z = a.z - b.z;
-
-            return Magnitude(x, y, z);
-        }
-
-        /// <summary>
-        /// The euclidean dot product of two vectors. It is the product of the magnitudes of the two vectors and the cosine of the angle between them.
-        /// Returns a positive value if the angle between the vectors is less than 90 degrees, 
-        /// negative if it's greater than 90 degrees, 
-        /// and zero if the vectors are orthogonal (perpendicular).
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static float Dot(Vec3 a, Vec3 b)
-        {
-            return a.x * b.x + a.y * b.y + a.z * b.z;
-        }
-
-        public static Vec3 Lerp(Vec3 a, Vec3 b, float t)
-        {
-            if (t < epsilon)
-                return a;
-            if (t >= 1f)
-                return b;
-
-            t = Mathf.Clamp01(t);
-
-            return LerpUnclamped(a, b, t);
-        }
-
-        public static Vec3 LerpUnclamped(Vec3 a, Vec3 b, float t)
-        {
-            return new Vec3(
-                a.x + (b.x - a.x) * t,
-                a.y + (b.y - a.y) * t,
-                a.z + (b.z - a.z) * t
-            );
-        }
-
-        /// <summary>
-        /// Returns a vector that is made from the largest components of two vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 Max(Vec3 a, Vec3 b)
-        {
-            float newX = a.x > b.x ? a.x : b.x;
-            float newY = a.y > b.y ? a.y : b.y;
-            float newZ = a.z > b.z ? a.z : b.z;
-            return new Vec3(newX, newY, newZ);
-        }
-
-        /// <summary>
-        /// Returns a vector that is made from the smallest components of two vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 Min(Vec3 a, Vec3 b)
-        {
-            float newX = a.x < b.x ? a.x : b.x;
-            float newY = a.y < b.y ? a.y : b.y;
-            float newZ = a.z < b.z ? a.z : b.z;
-            return new Vec3(newX, newY, newZ);
-        }
-
-        public void Set(float newX, float newY, float newZ)
-        {
-            x = newX;
-            y = newY;
-            z = newZ;
-        }
-        public void Scale(Vec3 scale)
-        {
-            x *= scale.x;
-            y *= scale.y;
-            z *= scale.z;
-        }
-        public void Normalize()
-        {
-            float mag = Magnitude(this);
-            if (mag > epsilon)
-            {
-                x /= mag;
-                y /= mag;
-                z /= mag;
-            }
-            else
-            {
-                x = 0f;
-                y = 0f;
-                z = 0f;
-            }
-        }
-        #endregion
-
-        #region Internals
-        public override bool Equals(object other)
-        {
-            if (!(other is Vec3)) return false;
-            return Equals((Vec3)other);
-        }
-
-        public bool Equals(Vec3 other)
-        {
-            return x == other.x && y == other.y && z == other.z;
-        }
-
-        public override int GetHashCode()
-        {
-            return x.GetHashCode() ^ (y.GetHashCode() << 2) ^ (z.GetHashCode() >> 2);
-        }
         #endregion
     }
 }
