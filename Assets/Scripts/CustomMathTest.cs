@@ -46,8 +46,6 @@ public class CustomMathTest : MonoBehaviour
 
         var unityRot = new Quaternion(worldRot.x, worldRot.y, worldRot.z, worldRot.w);
 
-        //Gizmos.matrix = ToUnity(t.worldToLocalMatrix);
-
         Gizmos.DrawMesh(mesh, (Vector3)worldPos, unityRot, (Vector3)worldScale);
     }
 
