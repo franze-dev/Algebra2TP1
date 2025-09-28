@@ -10,11 +10,9 @@ namespace CustomMath
         public float z;
         public float w;
 
-        Transform t;
-
         private static readonly CustomQuaternion _identity = new(0f, 0f, 0f, 1f);
 
-        public static CustomQuaternion Identity => _identity;
+        public static CustomQuaternion identity => _identity;
 
         public const float kEpsilon = 1E-06f;
 
@@ -32,6 +30,14 @@ namespace CustomMath
             this.y = v.y;
             this.z = v.z;
             this.w = w;
+        }
+
+        public CustomQuaternion(Quaternion rotation)
+        {
+            this.x = rotation.x;
+            this.y = rotation.y;
+            this.z = rotation.z;
+            this.w = rotation.w;
         }
 
         public Vec3 eulerAngles
@@ -63,7 +69,7 @@ namespace CustomMath
                 // Vectors are parallel
                 if (Vec3.Dot(fromDirection, toDirection) > 0f)
                     //Same direction
-                    return Identity;
+                    return identity;
                 // Opposite direction
                 return AngleAxis(180f, fromDirection.normalized);
             }
@@ -84,7 +90,7 @@ namespace CustomMath
             var sqrMag = Dot(rotation, rotation);
 
             if (sqrMag < kEpsilon)
-                return Identity;
+                return identity;
 
             return new(
                 -rotation.x / sqrMag,
@@ -179,9 +185,9 @@ namespace CustomMath
         /// <returns></returns>
         private static CustomQuaternion FromEulerRad(Vec3 euler)
         {
-            var roll = euler.z;
-            var pitch = euler.x;
-            var yaw = euler.y;
+            var roll = euler.x;
+            var pitch = euler.y;
+            var yaw = euler.z;
 
             float cr = Mathf.Cos(roll * 0.5f);
             float sr = Mathf.Sin(roll * 0.5f);
@@ -226,7 +232,7 @@ namespace CustomMath
         public static CustomQuaternion AngleAxis(float angle, Vec3 axis)
         {
             if (axis.sqrMagnitude < kEpsilon)
-                return Identity;
+                return identity;
 
             axis = axis.normalized;
 
@@ -408,7 +414,7 @@ namespace CustomMath
             float mag = Mathf.Sqrt(Dot(q, q));
             if (mag < Mathf.Epsilon)
             {
-                return Identity;
+                return identity;
             }
 
             return new CustomQuaternion(q.x / mag, q.y / mag, q.z / mag, q.w / mag);

@@ -18,8 +18,11 @@ namespace CustomMath
 
         private void Awake()
         {
+            // To get the local rotation I give it the yaw pitch and roll (euler) angles and 
+            // transform it to a quaternion rotation.
             localRotation = CustomQuaternion.Euler(eulerRotation);
 
+            // If it has a parent that has a CustomTransform, automatically assign it as parent.
             if (parent == null && transform.parent != null)
             {
                 var parentTransform = transform.parent.GetComponent<CustomTransform>();
@@ -27,6 +30,7 @@ namespace CustomMath
                     SetParent(parentTransform);
             }
 
+            //If the original transform of this object is not zero, then assign it to the local position
             if (transform.position != Vec3.zero)
                 localPosition = new(transform.position);
         }
@@ -34,7 +38,6 @@ namespace CustomMath
         private void OnValidate()
         {
             localRotation = CustomQuaternion.Euler(eulerRotation);
-
         }
 
         public Vec3 position
