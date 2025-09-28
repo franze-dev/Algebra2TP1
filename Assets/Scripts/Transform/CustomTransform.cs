@@ -19,6 +19,16 @@ namespace CustomMath
         private void Awake()
         {
             localRotation = CustomQuaternion.Euler(eulerRotation);
+
+            if (parent == null && transform.parent != null)
+            {
+                var parentTransform = transform.parent.GetComponent<CustomTransform>();
+                if (parentTransform != null)
+                    SetParent(parentTransform);
+            }
+
+            if (transform.position != Vec3.zero)
+                localPosition = new(transform.position);
         }
 
         private void OnValidate()
@@ -32,7 +42,7 @@ namespace CustomMath
             get
             {
                 return parent != null ?
-                    parent.localToWorldMatrix.MultiplyPoint(localPosition):
+                    parent.localToWorldMatrix.MultiplyPoint(localPosition) :
                     localPosition;
             }
             set
@@ -56,6 +66,7 @@ namespace CustomMath
                     parent.rotation.Inverse() * value : value;
             }
         }
+
 
         public CustomMatrix4x4 worldToLocalMatrix
         {
@@ -101,6 +112,16 @@ namespace CustomMath
             }
 
             this.parent = parent;
+        }
+
+        public Vec3 TransformPoint(Vec3 position)
+        {
+            return localToWorldMatrix.MultiplyPoint(position);
+        }
+
+        public Vec3 InverseTransformPoint(Vec3 position)
+        {
+            return worldToLocalMatrix.MultiplyPoint(position);
         }
     }
 
