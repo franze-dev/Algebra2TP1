@@ -355,68 +355,69 @@ namespace CustomMath
         {
             // Step 1: Matrix initialization
             // Copy 'this' into a working array of 4 rows (each row is 8 floats: 4 original + 4 identity)
-            float[,] aug = new float[4, 8];
+            float[,] augmentedM = new float[4, 8];
 
             // Step 2: Augmented matrix setup
-            for (int r = 0; r < 4; r++)
+            for (int row = 0; row < 4; row++)
             {
-                for (int c = 0; c < 4; c++)
-                    aug[r, c] = this[r, c]; // assuming you have this[row,col] accessor
+                for (int cols = 0; cols < 4; cols++)
+                    augmentedM[row, cols] = this[row, cols]; // assuming you have this[row,col] accessor
 
-                for (int c = 0; c < 4; c++)
-                    aug[r, c + 4] = (r == c) ? 1f : 0f; // identity on right
+                for (int cols = 0; cols < 4; cols++)
+                    augmentedM[row, cols + 4] = (row == cols) ? 1f : 0f; // identity on right
             }
 
             // Step 3: Gaussian elimination
-            for (int i = 0; i < 4; i++)
+            for (int pivotCol = 0; pivotCol < 4; pivotCol++)
             {
                 // Pivot search: find row with largest abs value in column i
-                int pivotRow = i;
-                float maxVal = Mathf.Abs(aug[i, i]);
-                for (int r = i + 1; r < 4; r++)
+                int pivotRow = pivotCol;
+                float maxVal = Mathf.Abs(augmentedM[pivotCol, pivotCol]);
+                for (int row = pivotCol + 1; row < 4; row++)
                 {
-                    if (Mathf.Abs(aug[r, i]) > maxVal)
+                    if (Mathf.Abs(augmentedM[row, pivotCol]) > maxVal)
                     {
-                        maxVal = Mathf.Abs(aug[r, i]);
-                        pivotRow = r;
+                        maxVal = Mathf.Abs(augmentedM[row, pivotCol]);
+                        pivotRow = row;
                     }
                 }
 
+                // If no valid pivot is found, matrix is not invertible (singular)
                 if (Mathf.Approximately(maxVal, 0f))
-                    throw new System.Exception("Matrix not invertible");
+                    return this;
 
                 // Swap rows if needed
-                if (pivotRow != i)
+                if (pivotRow != pivotCol)
                 {
-                    for (int c = 0; c < 8; c++)
+                    for (int cols = 0; cols < 8; cols++)
                     {
-                        float tmp = aug[i, c];
-                        aug[i, c] = aug[pivotRow, c];
-                        aug[pivotRow, c] = tmp;
+                        float temp = augmentedM[pivotCol, cols];
+                        augmentedM[pivotCol, cols] = augmentedM[pivotRow, cols];
+                        augmentedM[pivotRow, cols] = temp;
                     }
                 }
 
                 // Step 4: Normalize pivot row
-                float pivotVal = aug[i, i];
-                for (int c = 0; c < 8; c++)
-                    aug[i, c] /= pivotVal;
+                float pivotVal = augmentedM[pivotCol, pivotCol];
+                for (int cols = 0; cols < 8; cols++)
+                    augmentedM[pivotCol, cols] /= pivotVal;
 
                 // Step 5: Eliminate other rows
-                for (int r = 0; r < 4; r++)
+                for (int row = 0; row < 4; row++)
                 {
-                    if (r == i) continue;
-                    float factor = aug[r, i];
-                    for (int c = 0; c < 8; c++)
-                        aug[r, c] -= factor * aug[i, c];
+                    if (row == pivotCol) continue;
+                    float factor = augmentedM[row, pivotCol];
+                    for (int cols = 0; cols < 8; cols++)
+                        augmentedM[row, cols] -= factor * augmentedM[pivotCol, cols];
                 }
             }
 
             // Step 6: Extract inverse (right half of augmented matrix)
             CustomMatrix4x4 inv = new CustomMatrix4x4();
-            for (int r = 0; r < 4; r++)
+            for (int row = 0; row < 4; row++)
             {
-                for (int c = 0; c < 4; c++)
-                    inv[r, c] = aug[r, c + 4];
+                for (int cols = 0; cols < 4; cols++)
+                    inv[row, cols] = augmentedM[row, cols + 4];
             }
 
             return inv;
