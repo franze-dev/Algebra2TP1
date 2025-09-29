@@ -162,19 +162,6 @@ namespace CustomMath
             return result;
         }
 
-        public static bool operator ==(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
-        {
-            return lhs.GetColumn(0) == rhs.GetColumn(0) &&
-                   lhs.GetColumn(1) == rhs.GetColumn(1) &&
-                   lhs.GetColumn(2) == rhs.GetColumn(2) &&
-                   lhs.GetColumn(3) == rhs.GetColumn(3);
-        }
-
-        public static bool operator !=(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
-        {
-            return !(lhs == rhs);
-        }
-
         public Vec3 MultiplyPoint(Vec3 point)
         {
             float x = m00 * point.x + m01 * point.y + m02 * point.z + m03;
@@ -185,14 +172,6 @@ namespace CustomMath
             if (Mathf.Abs(w) > Mathf.Epsilon)
                 return new Vec3(x / w, y / w, z / w);
 
-            return new Vec3(x, y, z);
-        }
-
-        public Vec3 MultiplyVector(Vec3 point)
-        {
-            float x = m00 * point.x + m01 * point.y + m02 * point.z;
-            float y = m10 * point.x + m11 * point.y + m12 * point.z;
-            float z = m20 * point.x + m21 * point.y + m22 * point.z;
             return new Vec3(x, y, z);
         }
 
