@@ -2,6 +2,7 @@
 using System;
 namespace CustomMath
 {
+    //2
     [Serializable]
     public class Vec3 : IEquatable<Vec3>
     {
@@ -14,10 +15,12 @@ namespace CustomMath
         /// Vector magnitude squared. Useful for comparisons. It avoids an expensive square root calculation.
         /// </summary>
         public float sqrMagnitude { get => x * x + y * y + z * z; }
+
         /// <summary>
         /// This vector with a magnitude of 1.
         /// </summary>
         public Vec3 normalized { get => this / magnitude; }
+
         /// <summary>
         /// The length/norm of the vector.
         /// </summary>
@@ -60,13 +63,6 @@ namespace CustomMath
             this.z = z;
         }
 
-        public Vec3(Vec3 v3)
-        {
-            this.x = v3.x;
-            this.y = v3.y;
-            this.z = v3.z;
-        }
-
         public Vec3(Vector3 v3)
         {
             this.x = v3.x;
@@ -74,12 +70,6 @@ namespace CustomMath
             this.z = v3.z;
         }
 
-        public Vec3(Vector2 v2)
-        {
-            this.x = v2.x;
-            this.y = v2.y;
-            this.z = 0.0f;
-        }
         #endregion
 
         #region Operators
@@ -128,10 +118,7 @@ namespace CustomMath
         {
             return new Vec3(v3.x * scalar, v3.y * scalar, v3.z * scalar);
         }
-        public static Vec3 operator *(float scalar, Vec3 v3)
-        {
-            return v3 * scalar;
-        }
+
         /// <summary>
         /// While not mathematically correct, it's useful for multiplying data saved in vectors.
         /// It'd be correct as long as they're not treated as actual vectors.
@@ -145,21 +132,6 @@ namespace CustomMath
                 a.x * b.x,
                 a.y * b.y,
                 a.z * b.z
-                );
-        }
-        /// <summary>
-        /// While not mathematically correct, it's useful for dividing data saved in vectors.
-        /// It'd be correct as long as they're not treated as actual vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 operator /(Vec3 a, Vec3 b)
-        {
-            return new Vec3(
-                a.x / b.x,
-                a.y / b.y,
-                a.z / b.z
                 );
         }
 
@@ -182,38 +154,9 @@ namespace CustomMath
             return new Vector3(a.x, a.y, a.z);
         }
 
-        public static implicit operator Vector2(Vec3 a)
-        {
-            return new Vector2(a.x, a.y);
-        }
         #endregion
 
         #region Functions
-        public override string ToString()
-        {
-            return "X = " + x.ToString() + "   Y = " + y.ToString() + "   Z = " + z.ToString();
-        }
-
-        /// <summary>
-        /// Returns the angle in degrees between from and to.
-        /// https://www.mathworks.com/matlabcentral/answers/2092961-how-to-calculate-the-angle-between-two-3d-vectors
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public static float Angle(Vec3 from, Vec3 to)
-        {
-            var dot = Dot(from, to);
-
-            if (dot == 0)
-                return 90f;
-
-            var cosTheta = dot / (Magnitude(from) * Magnitude(to));
-
-            cosTheta = Mathf.Clamp(cosTheta, -1f, 1f);
-
-            return Mathf.Acos(cosTheta) * Mathf.Rad2Deg;
-        }
 
         /// <summary>
         /// Magnitude of a vector. It is always a positive/zero value.
@@ -225,6 +168,13 @@ namespace CustomMath
             return Magnitude(vector.x, vector.y, vector.z);
         }
 
+        /// <summary>
+        /// https://www.cuemath.com/magnitude-of-a-vector-formula/
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public static float Magnitude(float x, float y, float z)
         {
             return Mathf.Sqrt(x * x + y * y + z * z);
@@ -271,67 +221,6 @@ namespace CustomMath
             return a.x * b.x + a.y * b.y + a.z * b.z;
         }
 
-        public static Vec3 Lerp(Vec3 a, Vec3 b, float t)
-        {
-            if (t < epsilon)
-                return a;
-            if (t >= 1f)
-                return b;
-
-            t = Mathf.Clamp01(t);
-
-            return LerpUnclamped(a, b, t);
-        }
-
-        public static Vec3 LerpUnclamped(Vec3 a, Vec3 b, float t)
-        {
-            return new Vec3(
-                a.x + (b.x - a.x) * t,
-                a.y + (b.y - a.y) * t,
-                a.z + (b.z - a.z) * t
-            );
-        }
-
-        /// <summary>
-        /// Returns a vector that is made from the largest components of two vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 Max(Vec3 a, Vec3 b)
-        {
-            float newX = a.x > b.x ? a.x : b.x;
-            float newY = a.y > b.y ? a.y : b.y;
-            float newZ = a.z > b.z ? a.z : b.z;
-            return new Vec3(newX, newY, newZ);
-        }
-
-        /// <summary>
-        /// Returns a vector that is made from the smallest components of two vectors.
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static Vec3 Min(Vec3 a, Vec3 b)
-        {
-            float newX = a.x < b.x ? a.x : b.x;
-            float newY = a.y < b.y ? a.y : b.y;
-            float newZ = a.z < b.z ? a.z : b.z;
-            return new Vec3(newX, newY, newZ);
-        }
-
-        public void Set(float newX, float newY, float newZ)
-        {
-            x = newX;
-            y = newY;
-            z = newZ;
-        }
-        public void Scale(Vec3 scale)
-        {
-            x *= scale.x;
-            y *= scale.y;
-            z *= scale.z;
-        }
         public void Normalize()
         {
             float mag = Magnitude(this);

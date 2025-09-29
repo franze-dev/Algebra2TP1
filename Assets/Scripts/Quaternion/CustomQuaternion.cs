@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace CustomMath
 {
+    //3
     public class CustomQuaternion
     {
         public float x;
@@ -10,6 +11,7 @@ namespace CustomMath
         public float z;
         public float w;
 
+        // elemento neutro
         private static readonly CustomQuaternion _identity = new(0f, 0f, 0f, 1f);
 
         public static CustomQuaternion identity => _identity;
@@ -101,11 +103,6 @@ namespace CustomMath
                 q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z);
         }
 
-        private static bool IsEqualUsingDot(float dot)
-        {
-            return dot > 0.999999f || dot < -0.999999f;
-        }
-
         public static implicit operator Quaternion(CustomQuaternion a)
         {
             return new Quaternion(a.x, a.y, a.z, a.w);
@@ -122,10 +119,7 @@ namespace CustomMath
         /// <returns></returns>
         public static float Dot(CustomQuaternion a, CustomQuaternion b)
         {
-            return a.x * b.x +
-                   a.y * b.y +
-                   a.z * b.z +
-                   a.w * b.w;
+            return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
         }
 
         public static CustomQuaternion Euler(Vec3 euler)

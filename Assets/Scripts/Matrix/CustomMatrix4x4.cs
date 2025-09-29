@@ -35,71 +35,22 @@ namespace CustomMath
         }
     }
 
+    //4
     public class CustomMatrix4x4
     {
+
         // The components of the matrix
         public float m00, m01, m02, m03;
         public float m10, m11, m12, m13;
         public float m20, m21, m22, m23;
         public float m30, m31, m32, m33;
 
-        public Vec4 GetColumn(int index)
-        {
-            return index switch
-            {
-                0 => new Vec4(m00, m10, m20, m30),
-                1 => new Vec4(m01, m11, m21, m31),
-                2 => new Vec4(m02, m12, m22, m32),
-                3 => new Vec4(m03, m13, m23, m33),
-                _ => throw new IndexOutOfRangeException("Invalid column index!"),
-            };
-        }
-
         // The multiplicative identity of matrices (M * I = I * M = M)
+        // elemento neutro
         public static CustomMatrix4x4 identity => new CustomMatrix4x4(new Vec4(1f, 0f, 0f, 0f),
                                                                       new Vec4(0f, 1f, 0f, 0f),
                                                                       new Vec4(0f, 0f, 1f, 0f),
                                                                       new Vec4(0f, 0f, 0f, 1f));
-
-        /// <summary>
-        /// Returns a matrix that is transformed by scale, rotation and position
-        /// https://learnopengl.com/Getting-started/Transformations
-        /// </summary>
-        /// <param name="pos"></param>
-        /// <param name="rot"></param>
-        /// <param name="sca"></param>
-        /// <returns></returns>
-        public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion rot, Vec3 sca)
-        {
-            var scale = Scale(sca);
-
-            var rotation = Rotate(rot);
-
-            var translation = Translate(pos);
-
-            return translation * rotation * scale;
-        }
-
-        private void Set(CustomMatrix4x4 mat)
-        {
-            m00 = mat.m00;
-            m01 = mat.m01;
-            m02 = mat.m02;
-            m03 = mat.m03;
-            m10 = mat.m10;
-            m11 = mat.m11;
-            m12 = mat.m12;
-            m13 = mat.m13;
-            m20 = mat.m20;
-            m21 = mat.m21;
-            m22 = mat.m22;
-            m23 = mat.m23;
-            m30 = mat.m30;
-            m31 = mat.m31;
-            m32 = mat.m32;
-            m33 = mat.m33;
-        }
-
         public CustomMatrix4x4(Vec4 column0, Vec4 column1, Vec4 column2, Vec4 column3)
         {
             m00 = column0.x;
@@ -130,34 +81,34 @@ namespace CustomMath
 
         /// <summary>
         /// It multiplies each row and column by each row and column of the other. 
-        /// For example: m00 multiplies a.row0 dot b.col0
-        ///              m12 multiplies a.row1 dot b.col2
+        /// For example: m00 a.row0 dot b.col0
+        ///              m12 a.row1 dot b.col2
         /// </summary>
-        /// <param name="lhs"></param>
-        /// <param name="rhs"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         /// <returns></returns>
-        public static CustomMatrix4x4 operator *(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
+        public static CustomMatrix4x4 operator *(CustomMatrix4x4 a, CustomMatrix4x4 b)
         {
             CustomMatrix4x4 result = new();
-            result.m00 = lhs.m00 * rhs.m00 + lhs.m01 * rhs.m10 + lhs.m02 * rhs.m20 + lhs.m03 * rhs.m30;
-            result.m01 = lhs.m00 * rhs.m01 + lhs.m01 * rhs.m11 + lhs.m02 * rhs.m21 + lhs.m03 * rhs.m31;
-            result.m02 = lhs.m00 * rhs.m02 + lhs.m01 * rhs.m12 + lhs.m02 * rhs.m22 + lhs.m03 * rhs.m32;
-            result.m03 = lhs.m00 * rhs.m03 + lhs.m01 * rhs.m13 + lhs.m02 * rhs.m23 + lhs.m03 * rhs.m33;
+            result.m00 = a.m00 * b.m00 + a.m01 * b.m10 + a.m02 * b.m20 + a.m03 * b.m30;
+            result.m01 = a.m00 * b.m01 + a.m01 * b.m11 + a.m02 * b.m21 + a.m03 * b.m31;
+            result.m02 = a.m00 * b.m02 + a.m01 * b.m12 + a.m02 * b.m22 + a.m03 * b.m32;
+            result.m03 = a.m00 * b.m03 + a.m01 * b.m13 + a.m02 * b.m23 + a.m03 * b.m33;
 
-            result.m10 = lhs.m10 * rhs.m00 + lhs.m11 * rhs.m10 + lhs.m12 * rhs.m20 + lhs.m13 * rhs.m30;
-            result.m11 = lhs.m10 * rhs.m01 + lhs.m11 * rhs.m11 + lhs.m12 * rhs.m21 + lhs.m13 * rhs.m31;
-            result.m12 = lhs.m10 * rhs.m02 + lhs.m11 * rhs.m12 + lhs.m12 * rhs.m22 + lhs.m13 * rhs.m32;
-            result.m13 = lhs.m10 * rhs.m03 + lhs.m11 * rhs.m13 + lhs.m12 * rhs.m23 + lhs.m13 * rhs.m33;
+            result.m10 = a.m10 * b.m00 + a.m11 * b.m10 + a.m12 * b.m20 + a.m13 * b.m30;
+            result.m11 = a.m10 * b.m01 + a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31;
+            result.m12 = a.m10 * b.m02 + a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32;
+            result.m13 = a.m10 * b.m03 + a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33;
 
-            result.m20 = lhs.m20 * rhs.m00 + lhs.m21 * rhs.m10 + lhs.m22 * rhs.m20 + lhs.m23 * rhs.m30;
-            result.m21 = lhs.m20 * rhs.m01 + lhs.m21 * rhs.m11 + lhs.m22 * rhs.m21 + lhs.m23 * rhs.m31;
-            result.m22 = lhs.m20 * rhs.m02 + lhs.m21 * rhs.m12 + lhs.m22 * rhs.m22 + lhs.m23 * rhs.m32;
-            result.m23 = lhs.m20 * rhs.m03 + lhs.m21 * rhs.m13 + lhs.m22 * rhs.m23 + lhs.m23 * rhs.m33;
+            result.m20 = a.m20 * b.m00 + a.m21 * b.m10 + a.m22 * b.m20 + a.m23 * b.m30;
+            result.m21 = a.m20 * b.m01 + a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31;
+            result.m22 = a.m20 * b.m02 + a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32;
+            result.m23 = a.m20 * b.m03 + a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33;
 
-            result.m30 = lhs.m30 * rhs.m00 + lhs.m31 * rhs.m10 + lhs.m32 * rhs.m20 + lhs.m33 * rhs.m30;
-            result.m31 = lhs.m30 * rhs.m01 + lhs.m31 * rhs.m11 + lhs.m32 * rhs.m21 + lhs.m33 * rhs.m31;
-            result.m32 = lhs.m30 * rhs.m02 + lhs.m31 * rhs.m12 + lhs.m32 * rhs.m22 + lhs.m33 * rhs.m32;
-            result.m33 = lhs.m30 * rhs.m03 + lhs.m31 * rhs.m13 + lhs.m32 * rhs.m23 + lhs.m33 * rhs.m33;
+            result.m30 = a.m30 * b.m00 + a.m31 * b.m10 + a.m32 * b.m20 + a.m33 * b.m30;
+            result.m31 = a.m30 * b.m01 + a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31;
+            result.m32 = a.m30 * b.m02 + a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32;
+            result.m33 = a.m30 * b.m03 + a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33;
 
             return result;
         }
@@ -245,6 +196,26 @@ namespace CustomMath
             }
         }
 
+        private void Set(CustomMatrix4x4 mat)
+        {
+            m00 = mat.m00;
+            m01 = mat.m01;
+            m02 = mat.m02;
+            m03 = mat.m03;
+            m10 = mat.m10;
+            m11 = mat.m11;
+            m12 = mat.m12;
+            m13 = mat.m13;
+            m20 = mat.m20;
+            m21 = mat.m21;
+            m22 = mat.m22;
+            m23 = mat.m23;
+            m30 = mat.m30;
+            m31 = mat.m31;
+            m32 = mat.m32;
+            m33 = mat.m33;
+        }
+
         public Vec3 MultiplyPoint(Vec3 point)
         {
             float x = m00 * point.x + m01 * point.y + m02 * point.z + m03;
@@ -256,6 +227,25 @@ namespace CustomMath
                 return new Vec3(x / w, y / w, z / w);
 
             return new Vec3(x, y, z);
+        }
+
+        /// <summary>
+        /// Returns a matrix that is transformed by scale, rotation and position
+        /// https://learnopengl.com/Getting-started/Transformations
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
+        /// <param name="sca"></param>
+        /// <returns></returns>
+        public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion rot, Vec3 sca)
+        {
+            var scale = Scale(sca);
+
+            var rotation = Rotate(rot);
+
+            var translation = Translate(pos);
+
+            return translation * rotation * scale;
         }
 
         /// <summary>
@@ -300,6 +290,7 @@ namespace CustomMath
         /// q.w = (cos(angle/2)
         /// q.x = x * sin(angle/2)
         /// q.y = y * sin(angle/2)
+        /// Esta funcion representa una derivacion algebraica directa de la definicion fundamental de la rotacion de cuaterniones.
         /// </summary>
         /// <param name="q"></param>
         /// <returns></returns>
@@ -308,6 +299,7 @@ namespace CustomMath
             // Make it a pure rotation
             q.Normalize();
 
+            #region Useful Vars
             var xx = q.x * q.x;
             var yy = q.y * q.y;
             var zz = q.z * q.z;
@@ -318,20 +310,52 @@ namespace CustomMath
             var wy = q.w * q.y;
             var wz = q.w * q.z;
             var ww = q.w * q.w;
+            #endregion
 
             var res = identity;
 
+            /*
+            // It uses only the 3x3 part of the matrix
+            // El objetivo es encontrar una matriz R tal que, multiplicada por cualquier vector v,
+            // el resultado sea el mismo que rotar v usando la formula de rotación de quaterniones
+            // La forma de rotacion de un vector en R3 por un cuaternion unitario es:
+            // v' = q * v * q^(-1) (q-1 siendo su conjugado)
+            // se puede traducir en matrices al ser una rotacion lineal:
+            // v' = R * v;
+            */
+
+            // Diagonales: Muestran que tanto se afectan los ejes de
+            //             rotacion. Hay un + al lado del eje afectado.
+            // 0 grados:
+            // 1 + 0 - 0 - 0 = 1;
+            // 1 - 0 + 0 - 0 = 1;
+            // 1 - 0 - 0 + 0 = 1;
+            // Cos(0) = 1;
+            // 
+            // Son los cosenos de los angulos entre los ejes originales y los rotados.
+            // q = 0,1,0,0 (180 grados)
+            // m00 = 0 + 1 - 0 - 0 = 1 -> cos(0°) = 1
+            // m11 = 0 - 1 + 0 - 0 = -1 -> cos(180°) = -1
+            // m22 = 0 - 1 - 0 + 0 = -1 -> cos(180°) = -1
+
             res.m00 = ww + xx - yy - zz;
-            res.m01 = 2 * (xy - wz);
-            res.m02 = 2 * (xz + wy);
-
-            res.m10 = 2 * (xy + wz);
             res.m11 = ww - xx + yy - zz;
-            res.m12 = 2 * (yz - wx);
-
-            res.m20 = 2 * (xz - wy);
-            res.m21 = 2 * (yz + wx);
             res.m22 = ww - xx - yy + zz;
+
+            //Fuera de las diagonales: Representan el acoplamiento de los ejes debido a la rotacion.
+            //x
+            // Este en particular, cuantifica como la componente rotacional al rededor del eje Z acopla
+            // los ejes X e Y
+            res.m10 = 2 * (xy + wz); //x * y + w * z -> para modificar XY
+            res.m20 = 2 * (xz - wy); //x * z
+
+            //y
+            res.m01 = 2 * (xy - wz); //y * x
+            res.m21 = 2 * (yz + wx); //y * z
+
+            //z
+            res.m02 = 2 * (xz + wy); //x * z
+            res.m12 = 2 * (yz - wx); //y * z
 
             return res;
         }

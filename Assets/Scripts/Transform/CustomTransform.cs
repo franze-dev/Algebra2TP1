@@ -13,8 +13,9 @@ namespace CustomMath
         public Vec3 localPosition;
         public Vec3 eulerRotation;
         public Vec3 localScale = new Vec3(1, 1, 1);
-        public CustomQuaternion localRotation;
         public CustomTransform parent;
+
+        public CustomQuaternion localRotation;
         #endregion
 
         #region Mono
@@ -84,7 +85,9 @@ namespace CustomMath
                 // https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
                 // If you isolate the localRotation from the equation above, this is the result you get (the inverse part)
                 // woldR = parentR * localR
-                // Since in quaternions there's no division, I cant do lR = wR/pR, so instead, I have to use the inverse
+                // Since in quaternions there's no division, I cant do
+                // lR = wR/pR,
+                // so instead, I have to use the inverse
                 // of the parent rotation. So:
                 // pR-1 * wR = pR-1 * (pR * lR)
                 // Quaternion multiplication is associative, so I can regroup the values like:
@@ -102,6 +105,7 @@ namespace CustomMath
             get
             {
                 //it inverts te localToWorldMatrix, so it gets the worldToLocalMatrix.
+                // parent -1 * parent * trs
                 return localToWorldMatrix.Inverse();
             }
         }
@@ -134,7 +138,7 @@ namespace CustomMath
         #endregion
 
         #region Funcs
-/// <summary>
+        /// <summary>
         /// Sets the parent of this transform.
         /// </summary>
         /// <param name="parent"></param>
