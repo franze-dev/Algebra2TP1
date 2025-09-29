@@ -626,7 +626,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localPosition:
-    x: 0
+    x: -1.99
     y: 0
     z: 0
   eulerRotation:
@@ -748,7 +748,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localPosition:
-    x: 0
+    x: -1.55
     y: 0
     z: 0
   eulerRotation:

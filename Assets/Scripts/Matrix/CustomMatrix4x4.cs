@@ -265,7 +265,6 @@ namespace CustomMath
             CustomMatrix4x4 m = this;
 
             float det;
-            int i;
 
             inv.m00 = m.m11 * m.m22 * m.m33 -
                      m.m11 * m.m32 * m.m23 -
@@ -396,6 +395,7 @@ namespace CustomMath
             inv.m13 *= det;
             inv.m20 *= det;
             inv.m21 *= det;
+            inv.m22 *= det;
             inv.m23 *= det;
             inv.m30 *= det;
             inv.m31 *= det;
