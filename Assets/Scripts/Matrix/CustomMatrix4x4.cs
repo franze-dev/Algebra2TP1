@@ -3,238 +3,104 @@ using UnityEngine;
 
 namespace CustomMath
 {
+    /// <summary>
+    /// Created to make it easier for me to make matrices 4x4
+    /// </summary>
+    public struct Vec4
+    {
+        public float x;
+        public float y;
+        public float z;
+        public float w;
+
+        public Vec4(float x, float y, float z, float w)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+        }
+
+        public static bool operator ==(Vec4 lhs, Vec4 rhs)
+        {
+            return Mathf.Abs(lhs.x - rhs.x) < Mathf.Epsilon &&
+                   Mathf.Abs(lhs.y - rhs.y) < Mathf.Epsilon &&
+                   Mathf.Abs(lhs.z - rhs.z) < Mathf.Epsilon &&
+                   Mathf.Abs(lhs.w - rhs.w) < Mathf.Epsilon;
+        }
+
+        public static bool operator !=(Vec4 lhs, Vec4 rhs)
+        {
+            return !(lhs == rhs);
+        }
+    }
+
     public class CustomMatrix4x4
     {
-        public float m00;
-        public float m10;
-        public float m20;
-        public float m30;
-        public float m01;
-        public float m11;
-        public float m21;
-        public float m31;
-        public float m02;
-        public float m12;
-        public float m22;
-        public float m32;
-        public float m03;
-        public float m13;
-        public float m23;
-        public float m33;
-        private static readonly CustomMatrix4x4 zeroMatrix = new CustomMatrix4x4(new Vector4(0f, 0f, 0f, 0f),
-                                                                                 new Vector4(0f, 0f, 0f, 0f),
-                                                                                 new Vector4(0f, 0f, 0f, 0f),
-                                                                                 new Vector4(0f, 0f, 0f, 0f));
+        // The components of the matrix
+        public float m00, m01, m02, m03;
+        public float m10, m11, m12, m13;
+        public float m20, m21, m22, m23;
+        public float m30, m31, m32, m33;
 
-        public CustomQuaternion rotation => GetRotation();
-        public Vec3 lossyScale => GetLossyScale();
-
-        public bool isIdentity => IsIdentity();
-
-        public float this[int row, int column]
-        {
-            get
-            {
-                return this[row + column * 4];
-            }
-            set
-            {
-                this[row + column * 4] = value;
-            }
-        }
-
-        public float this[int index]
-        {
-            get
-            {
-                return index switch
-                {
-                    0 => m00,
-                    1 => m10,
-                    2 => m20,
-                    3 => m30,
-                    4 => m01,
-                    5 => m11,
-                    6 => m21,
-                    7 => m31,
-                    8 => m02,
-                    9 => m12,
-                    10 => m22,
-                    11 => m32,
-                    12 => m03,
-                    13 => m13,
-                    14 => m23,
-                    15 => m33,
-                    _ => throw new IndexOutOfRangeException(),
-                };
-            }
-            set
-            {
-                switch (index)
-                {
-                    case 0:
-                        m00 = value;
-                        break;
-                    case 1:
-                        m10 = value;
-                        break;
-                    case 2:
-                        m20 = value;
-                        break;
-                    case 3:
-                        m30 = value;
-                        break;
-                    case 4:
-                        m01 = value;
-                        break;
-                    case 5:
-                        m11 = value;
-                        break;
-                    case 6:
-                        m21 = value;
-                        break;
-                    case 7:
-                        m31 = value;
-                        break;
-                    case 8:
-                        m02 = value;
-                        break;
-                    case 9:
-                        m12 = value;
-                        break;
-                    case 10:
-                        m22 = value;
-                        break;
-                    case 11:
-                        m32 = value;
-                        break;
-                    case 12:
-                        m03 = value;
-                        break;
-                    case 13:
-                        m13 = value;
-                        break;
-                    case 14:
-                        m23 = value;
-                        break;
-                    case 15:
-                        m33 = value;
-                        break;
-                    default:
-                        throw new IndexOutOfRangeException();
-                }
-            }
-        }
-        public Vector4 GetColumn(int index)
+        public Vec4 GetColumn(int index)
         {
             return index switch
             {
-                0 => new Vector4(m00, m10, m20, m30),
-                1 => new Vector4(m01, m11, m21, m31),
-                2 => new Vector4(m02, m12, m22, m32),
-                3 => new Vector4(m03, m13, m23, m33),
+                0 => new Vec4(m00, m10, m20, m30),
+                1 => new Vec4(m01, m11, m21, m31),
+                2 => new Vec4(m02, m12, m22, m32),
+                3 => new Vec4(m03, m13, m23, m33),
                 _ => throw new IndexOutOfRangeException("Invalid column index!"),
             };
         }
 
-        public static CustomMatrix4x4 identity => new CustomMatrix4x4(new Vector4(1f, 0f, 0f, 0f),
-                                                                      new Vector4(0f, 1f, 0f, 0f),
-                                                                      new Vector4(0f, 0f, 1f, 0f),
-                                                                      new Vector4(0f, 0f, 0f, 1f));
+        // The multiplicative identity of matrices (M * I = I * M = M)
+        public static CustomMatrix4x4 identity => new CustomMatrix4x4(new Vec4(1f, 0f, 0f, 0f),
+                                                                      new Vec4(0f, 1f, 0f, 0f),
+                                                                      new Vec4(0f, 0f, 1f, 0f),
+                                                                      new Vec4(0f, 0f, 0f, 1f));
 
         /// <summary>
-        /// Returns the rotation component of the matrix as a quaternion.
-        /// https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-        /// </summary>
-        /// <returns></returns>
-        private CustomQuaternion GetRotation()
-        {
-            float x;
-            float y;
-            float z;
-            float w;
-
-            //diagonal elements (the sum of these must not be zero)
-            float diagonal = m00 + m11 + m22;
-
-            // check which major diagonal element has the greatest value
-            // if the diagonal is greater than zero then w is the largest
-            if (diagonal > 0)
-            {
-                float S = Mathf.Sqrt(diagonal + 1f) * 2;
-                w = 0.25f * S;
-                x = (m21 - m12) / S;
-                y = (m02 - m20) / S;
-                z = (m10 - m01) / S;
-            }
-            // otherwise we need to figure out which of x, y, or z is the largest
-            else if ((m00 > m11) && (m00 > m22))
-            {
-                float S = Mathf.Sqrt(1f + m00 - m11 - m22) * 2;
-                w = (m21 - m12) / S;
-                x = 0.25f * S;
-                y = (m01 + m10) / S;
-                z = (m02 + m20) / S;
-            }
-            else if (m11 > m22)
-            {
-                float S = Mathf.Sqrt(1f + m11 - m00 - m22) * 2;
-                w = (m02 - m20) / S;
-                x = (m01 + m10) / S;
-                y = 0.25f * S;
-                z = (m12 + m21) / S;
-            }
-            else
-            {
-                float S = Mathf.Sqrt(1f + m22 - m00 - m11) * 2;
-                w = (m10 - m01) / S;
-                x = (m02 + m20) / S;
-                y = (m12 + m21) / S;
-                z = 0.25f * S;
-            }
-
-            return new CustomQuaternion(x, y, z, w).normalized;
-        }
-
-        private Vec3 GetLossyScale()
-        {
-            return new Vec3(
-                new Vec3(m00, m10, m20).magnitude,
-                new Vec3(m01, m11, m21).magnitude,
-                new Vec3(m02, m12, m22).magnitude
-            );
-        }
-
-        private bool IsIdentity()
-        {
-            return this == identity;
-        }
-
-        /// <summary>
+        /// Returns a matrix that is transformed by scale, rotation and position
         /// https://learnopengl.com/Getting-started/Transformations
         /// </summary>
         /// <param name="pos"></param>
-        /// <param name="q"></param>
-        /// <param name="s"></param>
+        /// <param name="rot"></param>
+        /// <param name="sca"></param>
         /// <returns></returns>
-        public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion q, Vec3 s)
+        public static CustomMatrix4x4 TRS(Vec3 pos, CustomQuaternion rot, Vec3 sca)
         {
-            var scale = Scale(s);
+            var scale = Scale(sca);
 
-            var rotation = Rotate(q);
+            var rotation = Rotate(rot);
 
-            var transform = Translate(pos);
+            var translation = Translate(pos);
 
-            return transform * rotation * scale;
+            return translation * rotation * scale;
         }
 
         private void Set(CustomMatrix4x4 mat)
         {
-            for (int i = 0; i < 16; i++)
-                this[i] = mat[i];
+            m00 = mat.m00;
+            m01 = mat.m01;
+            m02 = mat.m02;
+            m03 = mat.m03;
+            m10 = mat.m10;
+            m11 = mat.m11;
+            m12 = mat.m12;
+            m13 = mat.m13;
+            m20 = mat.m20;
+            m21 = mat.m21;
+            m22 = mat.m22;
+            m23 = mat.m23;
+            m30 = mat.m30;
+            m31 = mat.m31;
+            m32 = mat.m32;
+            m33 = mat.m33;
         }
 
-        public CustomMatrix4x4(Vector4 column0, Vector4 column1, Vector4 column2, Vector4 column3)
+        public CustomMatrix4x4(Vec4 column0, Vec4 column1, Vec4 column2, Vec4 column3)
         {
             m00 = column0.x;
             m01 = column1.x;
@@ -259,10 +125,17 @@ namespace CustomMath
 
         public CustomMatrix4x4()
         {
-            var identity = CustomMatrix4x4.identity;
-            Set(identity);
+            Set(CustomMatrix4x4.identity);
         }
 
+        /// <summary>
+        /// It multiplies each row and column by each row and column of the other. 
+        /// For example: m00 multiplies a.row0 dot b.col0
+        ///              m12 multiplies a.row1 dot b.col2
+        /// </summary>
+        /// <param name="lhs"></param>
+        /// <param name="rhs"></param>
+        /// <returns></returns>
         public static CustomMatrix4x4 operator *(CustomMatrix4x4 lhs, CustomMatrix4x4 rhs)
         {
             CustomMatrix4x4 result = new();
@@ -302,14 +175,6 @@ namespace CustomMath
             return !(lhs == rhs);
         }
 
-        public void SetColumn(int index, Vector4 column)
-        {
-            this[0, index] = column.x;
-            this[1, index] = column.y;
-            this[2, index] = column.z;
-            this[3, index] = column.w;
-        }
-
         public Vec3 MultiplyPoint(Vec3 point)
         {
             float x = m00 * point.x + m01 * point.y + m02 * point.z + m03;
@@ -333,6 +198,7 @@ namespace CustomMath
 
         /// <summary>
         /// Returns a matrix that scales by the given vector.
+        /// Saves the values in the diagonal of the matrix
         /// </summary>
         /// <param name="vector"></param>
         /// <returns></returns>
@@ -349,6 +215,7 @@ namespace CustomMath
 
         /// <summary>
         /// Returns a matrix that translates by the given vector.
+        /// Saves the values at the last column of the matrix
         /// </summary>
         /// <param name="vector"></param>
         /// <returns></returns>
@@ -365,11 +232,18 @@ namespace CustomMath
         /// <summary>
         /// Returns a matrix that rotates by the given quaternion.
         /// https://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf
+        /// (Page 18)
+        /// q.w represents the angle of rotation (cos(angle/2))
+        /// q.x, q.y and q.z represent the axis of rotation (a unit vector scaled by sin(angle/2)
+        /// q.w = (cos(angle/2)
+        /// q.x = x * sin(angle/2)
+        /// q.y = y * sin(angle/2)
         /// </summary>
         /// <param name="q"></param>
         /// <returns></returns>
         public static CustomMatrix4x4 Rotate(CustomQuaternion q)
         {
+            // Make it a pure rotation
             q.Normalize();
 
             var xx = q.x * q.x;
@@ -526,16 +400,28 @@ namespace CustomMath
                       m.m02 * m.m10 * m.m21 -
                       m.m02 * m.m20 * m.m11;
 
-            det = m.m00 * inv.m00 + m.m10 * inv[4] + m.m20 * inv[8] + m.m30 * inv[12];
+            det = m.m00 * inv.m00 + m.m10 * inv.m01 + m.m20 * inv.m02 + m.m30 * inv.m03;
 
             if (det == 0)
                 return m;
 
             det = 1.0f / det;
 
-            for (i = 0; i < 16; i++)
-                inv[i] *= det;
-
+            inv.m00 *= det;
+            inv.m01 *= det;
+            inv.m02 *= det;
+            inv.m03 *= det;
+            inv.m10 *= det;
+            inv.m11 *= det;
+            inv.m12 *= det;
+            inv.m13 *= det;
+            inv.m20 *= det;
+            inv.m21 *= det;
+            inv.m23 *= det;
+            inv.m30 *= det;
+            inv.m31 *= det;
+            inv.m32 *= det;
+            inv.m33 *= det;
 
             return inv;
         }
