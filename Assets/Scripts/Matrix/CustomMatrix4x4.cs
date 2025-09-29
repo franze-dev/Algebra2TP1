@@ -162,6 +162,89 @@ namespace CustomMath
             return result;
         }
 
+        public float this[int index]
+        {
+            get
+            {
+                return index switch
+                {
+                    0 => m00,
+                    1 => m10,
+                    2 => m20,
+                    3 => m30,
+                    4 => m01,
+                    5 => m11,
+                    6 => m21,
+                    7 => m31,
+                    8 => m02,
+                    9 => m12,
+                    10 => m22,
+                    11 => m32,
+                    12 => m03,
+                    13 => m13,
+                    14 => m23,
+                    15 => m33,
+                    _ => throw new IndexOutOfRangeException(),
+                };
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0:
+                        m00 = value;
+                        break;
+                    case 1:
+                        m10 = value;
+                        break;
+                    case 2:
+                        m20 = value;
+                        break;
+                    case 3:
+                        m30 = value;
+                        break;
+                    case 4:
+                        m01 = value;
+                        break;
+                    case 5:
+                        m11 = value;
+                        break;
+                    case 6:
+                        m21 = value;
+                        break;
+                    case 7:
+                        m31 = value;
+                        break;
+                    case 8:
+                        m02 = value;
+                        break;
+                    case 9:
+                        m12 = value;
+                        break;
+                    case 10:
+                        m22 = value;
+                        break;
+                    case 11:
+                        m32 = value;
+                        break;
+                    case 12:
+                        m03 = value;
+                        break;
+                    case 13:
+                        m13 = value;
+                        break;
+                    case 14:
+                        m23 = value;
+                        break;
+                    case 15:
+                        m33 = value;
+                        break;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+        }
+
         public Vec3 MultiplyPoint(Vec3 point)
         {
             float x = m00 * point.x + m01 * point.y + m02 * point.z + m03;
@@ -253,156 +336,91 @@ namespace CustomMath
             return res;
         }
 
+        private int ToIndex(int row, int column)
+        {
+            return column * 4 + row;
+        }
+
+        public float this[int row, int col]
+        {
+            get => this[ToIndex(row, col)];
+            set => this[ToIndex(row, col)] = value;
+        }
+
         /// <summary>
-        /// https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
-        /// https://rodolphe-vaillant.fr/entry/7/c-code-for-4x4-matrix-inversion
+        /// https://dev.to/rk042/how-to-inverse-a-matrix-in-c-12jg
         /// </summary>
         /// <returns></returns>
         public CustomMatrix4x4 Inverse()
         {
+            // Step 1: Matrix initialization
+            // Copy 'this' into a working array of 4 rows (each row is 8 floats: 4 original + 4 identity)
+            float[,] aug = new float[4, 8];
 
-            CustomMatrix4x4 inv = new();
-            CustomMatrix4x4 m = this;
+            // Step 2: Augmented matrix setup
+            for (int r = 0; r < 4; r++)
+            {
+                for (int c = 0; c < 4; c++)
+                    aug[r, c] = this[r, c]; // assuming you have this[row,col] accessor
 
-            float det;
+                for (int c = 0; c < 4; c++)
+                    aug[r, c + 4] = (r == c) ? 1f : 0f; // identity on right
+            }
 
-            inv.m00 = m.m11 * m.m22 * m.m33 -
-                     m.m11 * m.m32 * m.m23 -
-                     m.m12 * m.m21 * m.m33 +
-                     m.m12 * m.m31 * m.m23 +
-                     m.m13 * m.m21 * m.m32 -
-                     m.m13 * m.m31 * m.m22;
+            // Step 3: Gaussian elimination
+            for (int i = 0; i < 4; i++)
+            {
+                // Pivot search: find row with largest abs value in column i
+                int pivotRow = i;
+                float maxVal = Mathf.Abs(aug[i, i]);
+                for (int r = i + 1; r < 4; r++)
+                {
+                    if (Mathf.Abs(aug[r, i]) > maxVal)
+                    {
+                        maxVal = Mathf.Abs(aug[r, i]);
+                        pivotRow = r;
+                    }
+                }
 
-            inv.m01 = -m.m01 * m.m22 * m.m33 +
-                      m.m01 * m.m32 * m.m23 +
-                      m.m02 * m.m21 * m.m33 -
-                      m.m02 * m.m31 * m.m23 -
-                      m.m03 * m.m21 * m.m32 +
-                      m.m03 * m.m31 * m.m22;
+                if (Mathf.Approximately(maxVal, 0f))
+                    throw new System.Exception("Matrix not invertible");
 
-            inv.m02 = m.m01 * m.m12 * m.m33 -
-                     m.m01 * m.m32 * m.m13 -
-                     m.m02 * m.m11 * m.m33 +
-                     m.m02 * m.m31 * m.m13 +
-                     m.m03 * m.m11 * m.m32 -
-                     m.m03 * m.m31 * m.m12;
+                // Swap rows if needed
+                if (pivotRow != i)
+                {
+                    for (int c = 0; c < 8; c++)
+                    {
+                        float tmp = aug[i, c];
+                        aug[i, c] = aug[pivotRow, c];
+                        aug[pivotRow, c] = tmp;
+                    }
+                }
 
-            inv.m03 = -m.m01 * m.m12 * m.m23 +
-                       m.m01 * m.m22 * m.m13 +
-                       m.m02 * m.m11 * m.m23 -
-                       m.m02 * m.m21 * m.m13 -
-                       m.m03 * m.m11 * m.m22 +
-                       m.m03 * m.m21 * m.m12;
+                // Step 4: Normalize pivot row
+                float pivotVal = aug[i, i];
+                for (int c = 0; c < 8; c++)
+                    aug[i, c] /= pivotVal;
 
-            inv.m10 = -m.m10 * m.m22 * m.m33 +
-                      m.m10 * m.m32 * m.m23 +
-                      m.m12 * m.m20 * m.m33 -
-                      m.m12 * m.m30 * m.m23 -
-                      m.m13 * m.m20 * m.m32 +
-                      m.m13 * m.m30 * m.m22;
+                // Step 5: Eliminate other rows
+                for (int r = 0; r < 4; r++)
+                {
+                    if (r == i) continue;
+                    float factor = aug[r, i];
+                    for (int c = 0; c < 8; c++)
+                        aug[r, c] -= factor * aug[i, c];
+                }
+            }
 
-            inv.m11 = m.m00 * m.m22 * m.m33 -
-                     m.m00 * m.m32 * m.m23 -
-                     m.m02 * m.m20 * m.m33 +
-                     m.m02 * m.m30 * m.m23 +
-                     m.m03 * m.m20 * m.m32 -
-                     m.m03 * m.m30 * m.m22;
-
-            inv.m12 = -m.m00 * m.m12 * m.m33 +
-                      m.m00 * m.m32 * m.m13 +
-                      m.m02 * m.m10 * m.m33 -
-                      m.m02 * m.m30 * m.m13 -
-                      m.m03 * m.m10 * m.m32 +
-                      m.m03 * m.m30 * m.m12;
-
-            inv.m13 = m.m00 * m.m12 * m.m23 -
-                      m.m00 * m.m22 * m.m13 -
-                      m.m02 * m.m10 * m.m23 +
-                      m.m02 * m.m20 * m.m13 +
-                      m.m03 * m.m10 * m.m22 -
-                      m.m03 * m.m20 * m.m12;
-
-            inv.m20 = m.m10 * m.m21 * m.m33 -
-                     m.m10 * m.m31 * m.m23 -
-                     m.m11 * m.m20 * m.m33 +
-                     m.m11 * m.m30 * m.m23 +
-                     m.m13 * m.m20 * m.m31 -
-                     m.m13 * m.m30 * m.m21;
-
-            inv.m21 = -m.m00 * m.m21 * m.m33 +
-                      m.m00 * m.m31 * m.m23 +
-                      m.m01 * m.m20 * m.m33 -
-                      m.m01 * m.m30 * m.m23 -
-                      m.m03 * m.m20 * m.m31 +
-                      m.m03 * m.m30 * m.m21;
-
-            inv.m22 = m.m00 * m.m11 * m.m33 -
-                      m.m00 * m.m31 * m.m13 -
-                      m.m01 * m.m10 * m.m33 +
-                      m.m01 * m.m30 * m.m13 +
-                      m.m03 * m.m10 * m.m31 -
-                      m.m03 * m.m30 * m.m11;
-
-            inv.m23 = -m.m00 * m.m11 * m.m23 +
-                       m.m00 * m.m21 * m.m13 +
-                       m.m01 * m.m10 * m.m23 -
-                       m.m01 * m.m20 * m.m13 -
-                       m.m03 * m.m10 * m.m21 +
-                       m.m03 * m.m20 * m.m11;
-
-            inv.m30 = -m.m10 * m.m21 * m.m32 +
-                      m.m10 * m.m31 * m.m22 +
-                      m.m11 * m.m20 * m.m32 -
-                      m.m11 * m.m30 * m.m22 -
-                      m.m12 * m.m20 * m.m31 +
-                      m.m12 * m.m30 * m.m21;
-
-            inv.m31 = m.m00 * m.m21 * m.m32 -
-                     m.m00 * m.m31 * m.m22 -
-                     m.m01 * m.m20 * m.m32 +
-                     m.m01 * m.m30 * m.m22 +
-                     m.m02 * m.m20 * m.m31 -
-                     m.m02 * m.m30 * m.m21;
-
-            inv.m32 = -m.m00 * m.m11 * m.m32 +
-                       m.m00 * m.m31 * m.m12 +
-                       m.m01 * m.m10 * m.m32 -
-                       m.m01 * m.m30 * m.m12 -
-                       m.m02 * m.m10 * m.m31 +
-                       m.m02 * m.m30 * m.m11;
-
-            inv.m33 = m.m00 * m.m11 * m.m22 -
-                      m.m00 * m.m21 * m.m12 -
-                      m.m01 * m.m10 * m.m22 +
-                      m.m01 * m.m20 * m.m12 +
-                      m.m02 * m.m10 * m.m21 -
-                      m.m02 * m.m20 * m.m11;
-
-            det = m.m00 * inv.m00 + m.m10 * inv.m01 + m.m20 * inv.m02 + m.m30 * inv.m03;
-
-            if (det == 0)
-                return m;
-
-            det = 1.0f / det;
-
-            inv.m00 *= det;
-            inv.m01 *= det;
-            inv.m02 *= det;
-            inv.m03 *= det;
-            inv.m10 *= det;
-            inv.m11 *= det;
-            inv.m12 *= det;
-            inv.m13 *= det;
-            inv.m20 *= det;
-            inv.m21 *= det;
-            inv.m22 *= det;
-            inv.m23 *= det;
-            inv.m30 *= det;
-            inv.m31 *= det;
-            inv.m32 *= det;
-            inv.m33 *= det;
+            // Step 6: Extract inverse (right half of augmented matrix)
+            CustomMatrix4x4 inv = new CustomMatrix4x4();
+            for (int r = 0; r < 4; r++)
+            {
+                for (int c = 0; c < 4; c++)
+                    inv[r, c] = aug[r, c + 4];
+            }
 
             return inv;
         }
+
     }
 }
